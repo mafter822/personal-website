@@ -1,8 +1,8 @@
 <template>
-  <header class="fixed top-0 left-0 right-0 z-50 glass-card rounded-none border-x-0 border-t-0">
+  <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
     <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <a href="#home" class="text-xl font-bold tracking-tight hover:text-primary transition-colors">
-        <span class="text-primary">&lt;</span>Portfolio<span class="text-primary">/&gt;</span>
+        <span>&lt;</span>Portfolio<span>/&gt;</span>
       </a>
 
       <div class="hidden md:flex items-center gap-8">
@@ -17,7 +17,7 @@
         </a>
         <button
           @click="toggleLocale"
-          class="text-sm px-3 py-1 rounded glass-card hover:border-primary/50 transition-colors"
+          class="text-sm px-3 py-1 rounded bg-bg-card hover:bg-bg-card-hover transition-colors"
         >
           {{ locale === 'zh' ? 'EN' : '中文' }}
         </button>
@@ -31,8 +31,8 @@
       </button>
     </nav>
 
-    <transition name="slide-up">
-      <div v-if="mobileOpen" class="md:hidden glass-card border-t border-white/5">
+    <transition name="slide-down">
+      <div v-if="mobileOpen" class="md:hidden glass border-t border-border">
         <div class="px-6 py-4 flex flex-col gap-4">
           <a
             v-for="item in navItems"
@@ -45,7 +45,7 @@
           </a>
           <button
             @click="toggleLocale"
-            class="text-sm px-3 py-1 rounded glass-card hover:border-primary/50 transition-colors text-left w-fit"
+            class="text-sm px-3 py-1 rounded bg-bg-card hover:bg-bg-card-hover transition-colors text-left w-fit"
           >
             {{ locale === 'zh' ? 'English' : '中文' }}
           </button>
@@ -79,13 +79,13 @@ function toggleLocale() {
 </script>
 
 <style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.3s ease;
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s cubic-bezier(.16, 1, .3, 1);
 }
 
-.slide-up-enter-from,
-.slide-up-leave-to {
+.slide-down-enter-from,
+.slide-down-leave-to {
   opacity: 0;
   transform: translateY(-10px);
 }
