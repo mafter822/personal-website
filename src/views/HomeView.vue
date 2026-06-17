@@ -194,14 +194,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getProfile, getLocalizedText } from '../utils/profile.js'
 import { fetchPosts } from '../utils/github.js'
 import ScrollReveal from '../components/ScrollReveal.vue'
 
 const { t, locale } = useI18n()
-const profile = ref(getProfile())
+const profileData = ref(getProfile())
+const profile = computed(() => profileData.value || getProfile())
 const posts = ref([])
 
 const form = ref({
@@ -218,7 +219,7 @@ onMounted(async () => {
   }
   
   window.addEventListener('storage', () => {
-    profile.value = getProfile()
+    profileData.value = getProfile()
   })
 })
 

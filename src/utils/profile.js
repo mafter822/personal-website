@@ -20,9 +20,12 @@ export function getProfile() {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved) {
     try {
-      return JSON.parse(saved)
+      const parsed = JSON.parse(saved)
+      if (parsed && parsed.profile) {
+        return parsed
+      }
     } catch {
-      return defaultProfile
+      localStorage.removeItem(STORAGE_KEY)
     }
   }
   return defaultProfile
