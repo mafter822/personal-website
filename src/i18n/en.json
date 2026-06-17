@@ -1,0 +1,47 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "blog": "Blog",
+    "gallery": "Gallery",
+    "contact": "Contact"
+  },
+  "home": {
+    "greeting": "Hi, I'm",
+    "name": "Your Name",
+    "title": "Developer",
+    "subtitle": "Creator",
+    "description": "Passionate about technology and design, creating beautiful digital experiences with code.",
+    "cta": "Learn More"
+  },
+  "about": {
+    "title": "About Me",
+    "bio": "Write something about yourself here...",
+    "skills": "Skills"
+  },
+  "projects": {
+    "title": "Projects",
+    "viewProject": "View Project",
+    "viewCode": "Source Code"
+  },
+  "blog": {
+    "title": "Latest Posts",
+    "viewAll": "View All",
+    "readMore": "Read More",
+    "empty": "No posts yet"
+  },
+  "gallery": {
+    "title": "Gallery"
+  },
+  "contact": {
+    "title": "Contact Me",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send"
+  },
+  "footer": {
+    "copyright": "All rights reserved"
+  }
+}

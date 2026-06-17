@@ -1,0 +1,47 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "projects": "项目",
+    "blog": "博客",
+    "gallery": "相册",
+    "contact": "联系"
+  },
+  "home": {
+    "greeting": "你好，我是",
+    "name": "你的名字",
+    "title": "开发者",
+    "subtitle": "创作者",
+    "description": "热爱技术与设计，用代码创造美好的数字体验。",
+    "cta": "了解更多"
+  },
+  "about": {
+    "title": "关于我",
+    "bio": "在这里写一段关于你自己的介绍...",
+    "skills": "技能"
+  },
+  "projects": {
+    "title": "项目展示",
+    "viewProject": "查看项目",
+    "viewCode": "源代码"
+  },
+  "blog": {
+    "title": "最新文章",
+    "viewAll": "查看全部",
+    "readMore": "阅读全文",
+    "empty": "暂无文章"
+  },
+  "gallery": {
+    "title": "相册"
+  },
+  "contact": {
+    "title": "联系我",
+    "name": "姓名",
+    "email": "邮箱",
+    "message": "留言",
+    "send": "发送"
+  },
+  "footer": {
+    "copyright": "保留所有权利"
+  }
+}
