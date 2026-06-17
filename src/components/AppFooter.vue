@@ -1,5 +1,5 @@
 <template>
-  <footer class="border-t border-white/5 py-12 px-6 glass-card rounded-none border-x-0 border-b-0">
+  <footer class="border-t border-border py-12 px-6 bg-bg">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="text-text-secondary text-sm">
         &copy; {{ new Date().getFullYear() }} {{ getLocalizedText(profile.profile.name, locale) }}. {{ t('footer.copyright') }}.
