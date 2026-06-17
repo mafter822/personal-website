@@ -1,0 +1,92 @@
+<template>
+  <header class="fixed top-0 left-0 right-0 z-50 glass-card rounded-none border-x-0 border-t-0">
+    <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#home" class="text-xl font-bold tracking-tight hover:text-primary transition-colors">
+        <span class="text-primary">&lt;</span>Portfolio<span class="text-primary">/&gt;</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a
+          v-for="item in navItems"
+          :key="item.to"
+          :href="item.to"
+          class="text-sm text-text-secondary hover:text-text-primary transition-colors relative group"
+        >
+          {{ t(item.label) }}
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+        </a>
+        <button
+          @click="toggleLocale"
+          class="text-sm px-3 py-1 rounded glass-card hover:border-primary/50 transition-colors"
+        >
+          {{ locale === 'zh' ? 'EN' : '中文' }}
+        </button>
+      </div>
+
+      <button @click="mobileOpen = !mobileOpen" class="md:hidden text-text-secondary">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path v-if="!mobileOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </nav>
+
+    <transition name="slide-up">
+      <div v-if="mobileOpen" class="md:hidden glass-card border-t border-white/5">
+        <div class="px-6 py-4 flex flex-col gap-4">
+          <a
+            v-for="item in navItems"
+            :key="item.to"
+            :href="item.to"
+            @click="mobileOpen = false"
+            class="text-text-secondary hover:text-text-primary transition-colors"
+          >
+            {{ t(item.label) }}
+          </a>
+          <button
+            @click="toggleLocale"
+            class="text-sm px-3 py-1 rounded glass-card hover:border-primary/50 transition-colors text-left w-fit"
+          >
+            {{ locale === 'zh' ? 'English' : '中文' }}
+          </button>
+        </div>
+      </div>
+    </transition>
+  </header>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
+const mobileOpen = ref(false)
+
+const navItems = [
+  { to: '#home', label: 'nav.home' },
+  { to: '#about', label: 'nav.about' },
+  { to: '#projects', label: 'nav.projects' },
+  { to: '#blog', label: 'nav.blog' },
+  { to: '#gallery', label: 'nav.gallery' },
+  { to: '#contact', label: 'nav.contact' },
+]
+
+function toggleLocale() {
+  const newLocale = locale.value === 'zh' ? 'en' : 'zh'
+  locale.value = newLocale
+  localStorage.setItem('locale', newLocale)
+}
+</script>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>
