@@ -1,0 +1,79 @@
+{
+  "profile": {
+    "name": {
+      "zh": "你的名字",
+      "en": "Your Name"
+    },
+    "title": {
+      "zh": "开发者 / 创作者",
+      "en": "Developer / Creator"
+    },
+    "description": {
+      "zh": "热爱技术与设计，用代码创造美好的数字体验。",
+      "en": "Passionate about technology and design, creating beautiful digital experiences with code."
+    },
+    "avatar": ""
+  },
+  "about": {
+    "bio": {
+      "zh": "在这里写一段关于你自己的介绍...",
+      "en": "Write something about yourself here..."
+    },
+    "skills": [
+      "Vue.js", "React", "TypeScript", "Node.js",
+      "Python", "Rust", "Docker", "Git"
+    ],
+    "experiences": [
+      {
+        "title": "Senior Developer",
+        "company": "Company Name · 2022 - Present",
+        "description": {
+          "zh": "描述你在这里的工作内容和成就...",
+          "en": "Describe your work and achievements here..."
+        }
+      },
+      {
+        "title": "Frontend Developer",
+        "company": "Another Company · 2020 - 2022",
+        "description": {
+          "zh": "描述你在这里的工作内容和成就...",
+          "en": "Describe your work and achievements here..."
+        }
+      }
+    ]
+  },
+  "projects": [
+    {
+      "title": "Project One",
+      "description": {
+        "zh": "这是一个示例项目描述，展示你的作品。",
+        "en": "This is a sample project description showcasing your work."
+      },
+      "icon": "🚀",
+      "tags": ["Vue.js", "Vite", "Tailwind"],
+      "url": "#",
+      "code": "#"
+    },
+    {
+      "title": "Project Two",
+      "description": {
+        "zh": "另一个示例项目，展示不同的技术栈。",
+        "en": "Another sample project showcasing different tech stack."
+      },
+      "icon": "🎨",
+      "tags": ["React", "TypeScript", "Node.js"],
+      "url": "#",
+      "code": "#"
+    }
+  ],
+  "social": {
+    "github": "https://github.com/yourusername",
+    "twitter": "https://twitter.com/yourusername",
+    "email": "your@email.com"
+  },
+  "gallery": [
+    { "src": "https://picsum.photos/seed/1/800/800", "alt": "Photo 1" },
+    { "src": "https://picsum.photos/seed/2/800/800", "alt": "Photo 2" },
+    { "src": "https://picsum.photos/seed/3/800/800", "alt": "Photo 3" }
+  ]
+}

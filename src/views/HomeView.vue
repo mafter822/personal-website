@@ -118,7 +118,7 @@
         <ScrollReveal>
           <div class="flex items-center justify-between mb-12">
             <h2 class="text-4xl font-bold gradient-text">{{ t('blog.title') }}</h2>
-            <router-link :to="`/${locale}/blog`" class="text-primary hover:underline">
+            <router-link :to="`/blog`" class="text-primary hover:underline">
               {{ t('blog.viewAll') }} →
             </router-link>
           </div>
@@ -130,7 +130,7 @@
             :key="post.slug"
             :delay="index * 100"
           >
-            <router-link :to="`/${locale}/blog/${post.slug}`">
+            <router-link :to="`/blog/${post.slug}`">
               <GlassCard class="group cursor-pointer">
                 <time class="text-sm text-text-secondary">{{ post.date }}</time>
                 <h3 class="text-lg font-semibold mt-2 group-hover:text-primary transition-colors">

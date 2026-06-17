@@ -1,5 +1,5 @@
 <template>
-  <footer class="border-t border-white/5 py-12 px-6">
+  <footer class="border-t border-white/5 py-12 px-6 glass-card rounded-none border-x-0 border-b-0">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="text-text-secondary text-sm">
         &copy; {{ new Date().getFullYear() }} {{ getLocalizedText(profile.profile.name, locale) }}. {{ t('footer.copyright') }}.
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getProfile, getLocalizedText } from '../utils/profile.js'
 
@@ -50,8 +50,12 @@ const { t, locale } = useI18n()
 const profile = ref(getProfile())
 
 onMounted(() => {
-  window.addEventListener('storage', () => {
+  const handler = () => {
     profile.value = getProfile()
+  }
+  window.addEventListener('storage', handler)
+  onUnmounted(() => {
+    window.removeEventListener('storage', handler)
   })
 })
 </script>
