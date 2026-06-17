@@ -67,7 +67,6 @@ const navItems = [
   { to: '#about', label: 'nav.about' },
   { to: '#projects', label: 'nav.projects' },
   { to: '#blog', label: 'nav.blog' },
-  { to: '#gallery', label: 'nav.gallery' },
   { to: '#contact', label: 'nav.contact' },
 ]
 
