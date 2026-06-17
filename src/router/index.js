@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
   {
@@ -21,14 +21,10 @@ const routes = [
     name: 'admin',
     component: () => import('../views/AdminView.vue'),
   },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/',
-  },
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
   scrollBehavior(to) {
     if (to.hash) {
