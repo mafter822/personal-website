@@ -71,9 +71,11 @@
     "twitter": "https://twitter.com/yourusername",
     "email": "your@email.com"
   },
-  "gallery": [
-    { "src": "https://picsum.photos/seed/1/800/800", "alt": "Photo 1" },
-    { "src": "https://picsum.photos/seed/2/800/800", "alt": "Photo 2" },
-    { "src": "https://picsum.photos/seed/3/800/800", "alt": "Photo 3" }
-  ]
+  "sections": {
+    "about": true,
+    "projects": true,
+    "blog": true,
+    "contact": true,
+    "experiences": true
+  }
 }

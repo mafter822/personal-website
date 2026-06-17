@@ -18,7 +18,8 @@
   "about": {
     "title": "关于我",
     "bio": "在这里写一段关于你自己的介绍...",
-    "skills": "技能"
+    "skills": "技能",
+    "experience": "工作经历"
   },
   "projects": {
     "title": "项目展示",

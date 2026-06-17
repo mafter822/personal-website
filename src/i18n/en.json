@@ -18,7 +18,8 @@
   "about": {
     "title": "About Me",
     "bio": "Write something about yourself here...",
-    "skills": "Skills"
+    "skills": "Skills",
+    "experience": "Experience"
   },
   "projects": {
     "title": "Projects",

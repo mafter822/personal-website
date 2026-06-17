@@ -1,19 +1,19 @@
 <template>
-  <div class="min-h-screen bg-surface">
+  <div class="min-h-screen bg-bg">
     <div v-if="!authenticated" class="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-      <div class="w-full max-w-md p-8 bg-surface-light rounded-xl border border-white/5">
+      <div class="w-full max-w-md p-8 card">
         <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
         <form @submit.prevent="login">
           <input
             v-model="passwordInput"
             type="password"
             placeholder="Enter password"
-            class="w-full px-4 py-3 bg-surface border border-white/10 rounded-lg focus:border-primary focus:outline-none transition-colors mb-4"
+            class="w-full px-4 py-3 bg-bg border border-border rounded-lg focus:border-primary focus:outline-none transition-colors mb-4"
           />
           <p v-if="error" class="text-red-500 text-sm mb-4">{{ error }}</p>
           <button
             type="submit"
-            class="w-full py-3 bg-primary hover:bg-primary-dark rounded-lg text-white font-medium transition-colors"
+            class="btn-primary w-full"
           >
             Login
           </button>
@@ -27,26 +27,43 @@
         <div class="flex gap-3">
           <button
             @click="exportData"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors"
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
           >
             Export JSON
           </button>
-          <label class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors cursor-pointer">
+          <label class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors cursor-pointer">
             Import JSON
             <input type="file" accept=".json" @change="importData" class="hidden" />
           </label>
           <button
             @click="resetData"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm transition-colors"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
           >
             Reset
           </button>
         </div>
       </div>
 
+      <!-- Section Visibility -->
+      <section class="p-6 card mb-8">
+        <h2 class="text-xl font-semibold mb-4">区块显示设置</h2>
+        <p class="text-text-secondary text-sm mb-4">控制主界面显示哪些区块</p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <label v-for="(label, key) in sectionLabels" :key="key" class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="data.sections[key]"
+              class="w-4 h-4 accent-black"
+            />
+            <span class="text-sm">{{ label }}</span>
+          </label>
+        </div>
+      </section>
+
       <div class="grid lg:grid-cols-2 gap-8">
         <div class="space-y-6">
-          <section class="p-6 bg-surface-light rounded-xl border border-white/5">
+          <!-- Profile -->
+          <section class="p-6 card">
             <h2 class="text-xl font-semibold mb-4">Profile</h2>
             <div class="space-y-4">
               <div>
@@ -73,14 +90,26 @@
                 <label class="block text-sm text-text-secondary mb-1">Description (English)</label>
                 <textarea v-model="data.profile.description.en" rows="2" class="input-field"></textarea>
               </div>
+            </div>
+          </section>
+
+          <!-- About Bio -->
+          <section class="p-6 card">
+            <h2 class="text-xl font-semibold mb-4">关于我 - 介绍</h2>
+            <div class="space-y-4">
               <div>
-                <label class="block text-sm text-text-secondary mb-1">Avatar URL</label>
-                <input v-model="data.profile.avatar" class="input-field" placeholder="https://..." />
+                <label class="block text-sm text-text-secondary mb-1">Bio (中文)</label>
+                <textarea v-model="data.about.bio.zh" rows="4" class="input-field"></textarea>
+              </div>
+              <div>
+                <label class="block text-sm text-text-secondary mb-1">Bio (English)</label>
+                <textarea v-model="data.about.bio.en" rows="4" class="input-field"></textarea>
               </div>
             </div>
           </section>
 
-          <section class="p-6 bg-surface-light rounded-xl border border-white/5">
+          <!-- Social Links -->
+          <section class="p-6 card">
             <h2 class="text-xl font-semibold mb-4">Social Links</h2>
             <div class="space-y-4">
               <div>
@@ -100,7 +129,8 @@
         </div>
 
         <div class="space-y-6">
-          <section class="p-6 bg-surface-light rounded-xl border border-white/5">
+          <!-- Skills -->
+          <section class="p-6 card">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-semibold">Skills</h2>
               <button @click="addSkill" class="text-sm text-primary hover:underline">+ Add</button>
@@ -113,13 +143,14 @@
             </div>
           </section>
 
-          <section class="p-6 bg-surface-light rounded-xl border border-white/5">
+          <!-- Experiences -->
+          <section class="p-6 card">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-semibold">Experiences</h2>
               <button @click="addExperience" class="text-sm text-primary hover:underline">+ Add</button>
             </div>
             <div class="space-y-4">
-              <div v-for="(exp, i) in data.about.experiences" :key="i" class="p-4 bg-surface rounded-lg">
+              <div v-for="(exp, i) in data.about.experiences" :key="i" class="p-4 bg-bg rounded-lg border border-border">
                 <div class="flex justify-between items-start mb-2">
                   <input v-model="exp.title" class="input-field flex-1 mr-2" placeholder="Title" />
                   <button @click="removeExperience(i)" class="text-red-500 hover:text-red-400">×</button>
@@ -131,13 +162,14 @@
             </div>
           </section>
 
-          <section class="p-6 bg-surface-light rounded-xl border border-white/5">
+          <!-- Projects -->
+          <section class="p-6 card">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-semibold">Projects</h2>
               <button @click="addProject" class="text-sm text-primary hover:underline">+ Add</button>
             </div>
             <div class="space-y-4">
-              <div v-for="(proj, i) in data.projects" :key="i" class="p-4 bg-surface rounded-lg">
+              <div v-for="(proj, i) in data.projects" :key="i" class="p-4 bg-bg rounded-lg border border-border">
                 <div class="flex justify-between items-start mb-2">
                   <input v-model="proj.title" class="input-field flex-1 mr-2" placeholder="Title" />
                   <button @click="removeProject(i)" class="text-red-500 hover:text-red-400">×</button>
@@ -159,13 +191,13 @@
       <div class="mt-8 flex justify-center">
         <button
           @click="save"
-          class="px-8 py-3 bg-primary hover:bg-primary-dark rounded-lg font-medium transition-colors"
+          class="btn-primary px-12"
         >
           Save Changes
         </button>
       </div>
 
-      <p v-if="saved" class="text-center text-green-500 mt-4">Saved successfully!</p>
+      <p v-if="saved" class="text-center text-green-600 mt-4">Saved successfully!</p>
     </div>
   </div>
 </template>
@@ -179,16 +211,30 @@ const passwordInput = ref('')
 const error = ref('')
 const saved = ref(false)
 
+const defaultSections = { about: true, projects: true, blog: true, contact: true, experiences: true }
+
 const data = reactive({
   profile: { name: { zh: '', en: '' }, title: { zh: '', en: '' }, description: { zh: '', en: '' }, avatar: '' },
   about: { bio: { zh: '', en: '' }, skills: [], experiences: [] },
   projects: [],
   social: { github: '', twitter: '', email: '' },
-  gallery: [],
+  sections: { ...defaultSections },
 })
 
+const sectionLabels = {
+  about: '关于我',
+  projects: '项目',
+  blog: '博客',
+  contact: '联系',
+  experiences: '工作经历',
+}
+
 onMounted(() => {
-  Object.assign(data, getProfile())
+  const profile = getProfile()
+  Object.assign(data, profile)
+  if (!data.sections) {
+    data.sections = { ...defaultSections }
+  }
 })
 
 function login() {
@@ -203,7 +249,7 @@ function login() {
 function save() {
   const tagsData = data.projects.map(p => ({
     ...p,
-    tags: Array.isArray(p.tags) ? p.tags : p.tags.split(',').map(t => t.trim()).filter(Boolean)
+    tags: Array.isArray(p.tags) ? p.tags : (p.tags || '').split(',').map(t => t.trim()).filter(Boolean)
   }))
   saveProfile({ ...data, projects: tagsData })
   saved.value = true
@@ -272,8 +318,8 @@ function resetData() {
 .input-field {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background-color: var(--color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   transition: border-color 0.2s;
