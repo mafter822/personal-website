@@ -1,15 +1,15 @@
 <template>
   <div class="relative">
     <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center justify-center relative">
-      <div class="text-center px-6 max-w-4xl mx-auto z-10">
-        <p class="text-primary font-mono text-sm mb-4 tracking-wider glow-text">
+    <section id="home" class="min-h-screen flex items-center justify-center relative px-6">
+      <div class="text-center max-w-4xl mx-auto z-10">
+        <p class="text-text-secondary text-sm mb-6 tracking-wider">
           {{ t('home.greeting') }}
         </p>
-        <h1 class="text-6xl md:text-8xl font-bold mb-6 font-[Georgia] gradient-text">
+        <h1 class="text-6xl md:text-8xl font-bold mb-6 heading-italic">
           {{ getLocalizedText(profile.profile.name, locale) }}
         </h1>
-        <p class="text-2xl md:text-3xl text-text-secondary mb-2">
+        <p class="text-2xl md:text-3xl text-text-secondary mb-4">
           {{ getLocalizedText(profile.profile.title, locale) }}
         </p>
         <p class="text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed">
@@ -17,20 +17,13 @@
         </p>
         <a
           href="#about"
-          class="inline-flex items-center gap-2 px-8 py-3 glass-card text-primary hover:text-white transition-all duration-300 group"
+          class="btn-primary inline-flex items-center gap-2"
         >
           {{ t('home.cta') }}
-          <svg class="w-4 h-4 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </a>
-      </div>
-      
-      <!-- 向下滚动指示器 -->
-      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-        <svg class="w-6 h-6 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
       </div>
     </section>
 
@@ -38,24 +31,24 @@
     <section id="about" class="min-h-screen py-20 px-6">
       <div class="max-w-6xl mx-auto">
         <ScrollReveal>
-          <h2 class="text-4xl font-bold mb-12 text-center gradient-text">{{ t('about.title') }}</h2>
+          <h2 class="text-4xl font-bold mb-12 text-center heading-italic">{{ t('about.title') }}</h2>
         </ScrollReveal>
         
         <ScrollReveal :delay="100">
-          <GlassCard class="mb-8">
+          <div class="card p-8 mb-8">
             <p class="text-text-secondary leading-relaxed text-lg">
               {{ getLocalizedText(profile.about.bio, locale) }}
             </p>
-          </GlassCard>
+          </div>
         </ScrollReveal>
 
         <ScrollReveal :delay="200">
-          <h3 class="text-2xl font-semibold mb-6 text-primary">{{ t('about.skills') }}</h3>
+          <h3 class="text-2xl font-semibold mb-6">{{ t('about.skills') }}</h3>
           <div class="flex flex-wrap gap-3">
             <span
               v-for="skill in profile.about.skills"
               :key="skill"
-              class="px-4 py-2 glass-card text-sm text-text-secondary hover:text-primary hover:border-primary/30 transition-all cursor-default"
+              class="px-4 py-2 card text-sm text-text-secondary hover:text-primary transition-all cursor-default"
             >
               {{ skill }}
             </span>
@@ -68,7 +61,7 @@
     <section id="projects" class="min-h-screen py-20 px-6">
       <div class="max-w-6xl mx-auto">
         <ScrollReveal>
-          <h2 class="text-4xl font-bold mb-12 text-center gradient-text">{{ t('projects.title') }}</h2>
+          <h2 class="text-4xl font-bold mb-12 text-center heading-italic">{{ t('projects.title') }}</h2>
         </ScrollReveal>
         
         <div class="grid md:grid-cols-2 gap-8">
@@ -77,8 +70,8 @@
             :key="project.title"
             :delay="index * 100"
           >
-            <GlassCard class="h-full group cursor-pointer">
-              <div class="h-40 bg-surface-light/50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+            <div class="card p-6 h-full group cursor-pointer">
+              <div class="h-40 bg-bg-card rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                 <span class="text-5xl group-hover:scale-110 transition-transform duration-300">
                   {{ project.icon }}
                 </span>
@@ -93,7 +86,7 @@
                 <span
                   v-for="tag in project.tags"
                   :key="tag"
-                  class="text-xs px-2 py-1 bg-primary/10 text-primary rounded"
+                  class="text-xs px-2 py-1 bg-bg-card text-text-secondary rounded"
                 >
                   {{ tag }}
                 </span>
@@ -106,7 +99,7 @@
                   {{ t('projects.viewCode') }}
                 </a>
               </div>
-            </GlassCard>
+            </div>
           </ScrollReveal>
         </div>
       </div>
@@ -117,8 +110,8 @@
       <div class="max-w-4xl mx-auto">
         <ScrollReveal>
           <div class="flex items-center justify-between mb-12">
-            <h2 class="text-4xl font-bold gradient-text">{{ t('blog.title') }}</h2>
-            <router-link :to="`/blog`" class="text-primary hover:underline">
+            <h2 class="text-4xl font-bold heading-italic">{{ t('blog.title') }}</h2>
+            <router-link to="/blog" class="text-primary hover:underline">
               {{ t('blog.viewAll') }} →
             </router-link>
           </div>
@@ -131,13 +124,13 @@
             :delay="index * 100"
           >
             <router-link :to="`/blog/${post.slug}`">
-              <GlassCard class="group cursor-pointer">
+              <div class="card p-6 group cursor-pointer">
                 <time class="text-sm text-text-secondary">{{ post.date }}</time>
                 <h3 class="text-lg font-semibold mt-2 group-hover:text-primary transition-colors">
                   {{ post.title }}
                 </h3>
                 <p class="text-text-secondary text-sm mt-2">{{ post.excerpt }}</p>
-              </GlassCard>
+              </div>
             </router-link>
           </ScrollReveal>
         </div>
@@ -152,7 +145,7 @@
     <section id="gallery" class="py-20 px-6">
       <div class="max-w-6xl mx-auto">
         <ScrollReveal>
-          <h2 class="text-4xl font-bold mb-12 text-center gradient-text">{{ t('gallery.title') }}</h2>
+          <h2 class="text-4xl font-bold mb-12 text-center heading-italic">{{ t('gallery.title') }}</h2>
         </ScrollReveal>
         
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -162,7 +155,7 @@
             :delay="index * 50"
           >
             <div
-              class="aspect-square glass-card overflow-hidden cursor-pointer group"
+              class="aspect-square card overflow-hidden cursor-pointer group"
               @click="openLightbox(index)"
             >
               <img
@@ -180,18 +173,18 @@
     <section id="contact" class="py-20 px-6">
       <div class="max-w-xl mx-auto">
         <ScrollReveal>
-          <h2 class="text-4xl font-bold mb-12 text-center gradient-text">{{ t('contact.title') }}</h2>
+          <h2 class="text-4xl font-bold mb-12 text-center heading-italic">{{ t('contact.title') }}</h2>
         </ScrollReveal>
         
         <ScrollReveal :delay="100">
-          <GlassCard>
+          <div class="card p-8">
             <form @submit.prevent="handleSubmit" class="space-y-6">
               <div>
                 <label class="block text-sm text-text-secondary mb-2">{{ t('contact.name') }}</label>
                 <input
                   v-model="form.name"
                   type="text"
-                  class="w-full px-4 py-3 bg-surface/50 border border-white/10 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                  class="w-full px-4 py-3 bg-bg border border-border rounded-lg focus:border-primary focus:outline-none transition-colors"
                   required
                 />
               </div>
@@ -200,7 +193,7 @@
                 <input
                   v-model="form.email"
                   type="email"
-                  class="w-full px-4 py-3 bg-surface/50 border border-white/10 rounded-lg focus:border-primary focus:outline-none transition-colors"
+                  class="w-full px-4 py-3 bg-bg border border-border rounded-lg focus:border-primary focus:outline-none transition-colors"
                   required
                 />
               </div>
@@ -209,18 +202,18 @@
                 <textarea
                   v-model="form.message"
                   rows="4"
-                  class="w-full px-4 py-3 bg-surface/50 border border-white/10 rounded-lg focus:border-primary focus:outline-none transition-colors resize-none"
+                  class="w-full px-4 py-3 bg-bg border border-border rounded-lg focus:border-primary focus:outline-none transition-colors resize-none"
                   required
                 ></textarea>
               </div>
               <button
                 type="submit"
-                class="w-full py-3 bg-primary hover:bg-primary-dark rounded-lg text-surface font-medium transition-colors"
+                class="btn-primary w-full"
               >
                 {{ t('contact.send') }}
               </button>
             </form>
-          </GlassCard>
+          </div>
         </ScrollReveal>
       </div>
     </section>
@@ -230,7 +223,7 @@
       <transition name="fade">
         <div
           v-if="lightboxOpen"
-          class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           @click.self="closeLightbox"
         >
           <button
@@ -273,7 +266,6 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getProfile, getLocalizedText } from '../utils/profile.js'
 import { fetchPosts } from '../utils/github.js'
-import GlassCard from '../components/GlassCard.vue'
 import ScrollReveal from '../components/ScrollReveal.vue'
 
 const { t, locale } = useI18n()
