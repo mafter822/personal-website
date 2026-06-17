@@ -1,16 +1,16 @@
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
     <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <a href="#home" class="text-xl font-bold tracking-tight hover:text-primary transition-colors">
+      <a @click.prevent="scrollTo('home')" href="#/" class="text-xl font-bold tracking-tight hover:text-primary transition-colors cursor-pointer">
         <span>&lt;</span>Portfolio<span>/&gt;</span>
       </a>
 
       <div class="hidden md:flex items-center gap-8">
         <a
           v-for="item in navItems"
-          :key="item.to"
-          :href="item.to"
-          class="text-sm text-text-secondary hover:text-text-primary transition-colors relative group"
+          :key="item.section"
+          @click.prevent="scrollTo(item.section)"
+          class="text-sm text-text-secondary hover:text-text-primary transition-colors relative group cursor-pointer"
         >
           {{ t(item.label) }}
           <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
@@ -36,10 +36,9 @@
         <div class="px-6 py-4 flex flex-col gap-4">
           <a
             v-for="item in navItems"
-            :key="item.to"
-            :href="item.to"
-            @click="mobileOpen = false"
-            class="text-text-secondary hover:text-text-primary transition-colors"
+            :key="item.section"
+            @click.prevent="scrollTo(item.section); mobileOpen = false"
+            class="text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
             {{ t(item.label) }}
           </a>
@@ -63,12 +62,19 @@ const { t, locale } = useI18n()
 const mobileOpen = ref(false)
 
 const navItems = [
-  { to: '#home', label: 'nav.home' },
-  { to: '#about', label: 'nav.about' },
-  { to: '#projects', label: 'nav.projects' },
-  { to: '#blog', label: 'nav.blog' },
-  { to: '#contact', label: 'nav.contact' },
+  { section: 'home', label: 'nav.home' },
+  { section: 'about', label: 'nav.about' },
+  { section: 'projects', label: 'nav.projects' },
+  { section: 'blog', label: 'nav.blog' },
+  { section: 'contact', label: 'nav.contact' },
 ]
+
+function scrollTo(sectionId) {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  }
+}
 
 function toggleLocale() {
   const newLocale = locale.value === 'zh' ? 'en' : 'zh'

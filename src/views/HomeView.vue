@@ -15,15 +15,15 @@
         <p class="text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed">
           {{ getLocalizedText(profile.profile.description, locale) }}
         </p>
-        <a
-          href="#about"
+        <button
+          @click="scrollToSection('about')"
           class="btn-primary inline-flex items-center gap-2"
         >
           {{ t('home.cta') }}
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
-        </a>
+        </button>
       </div>
     </section>
 
@@ -227,5 +227,12 @@ function handleSubmit() {
   const mailto = `mailto:${profile.value.social.email}?subject=Message from ${form.value.name}&body=${encodeURIComponent(form.value.message)}%0A%0AFrom: ${form.value.email}`
   window.location.href = mailto
   form.value = { name: '', email: '', message: '' }
+}
+
+function scrollToSection(sectionId) {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 </script>
