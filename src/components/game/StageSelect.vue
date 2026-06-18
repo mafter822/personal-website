@@ -172,6 +172,7 @@ function stageEmoji(difficulty) {
 }
 
 function handleStageClick(stage) {
+  alert('点击了: ' + stage.name + ' (Lv.' + stage.requiredLevel + '+, 需要' + stage.staminaCost + '体力)')
   recoverStaminaByTime()
   
   if (!isAvailable(stage)) {
