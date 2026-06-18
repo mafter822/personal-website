@@ -174,28 +174,19 @@ function stageEmoji(difficulty) {
 function handleStageClick(stage) {
   recoverStaminaByTime()
   
-  const levelOk = isAvailable(stage)
-  const staminaOk = playerStamina.value >= stage.staminaCost
-  
-  console.log('Stage click:', stage.name, 'Level:', playerLevel.value, 'Need:', stage.requiredLevel, 'Stamina:', playerStamina.value, 'Need:', stage.staminaCost)
-  
-  if (!levelOk) {
-    alert('等级不足! 当前:' + playerLevel.value + ' 需要:' + stage.requiredLevel)
+  if (!isAvailable(stage)) {
     insufficientStage.value = stage
     showLevelModal.value = true
     return
   }
   
-  if (!staminaOk) {
-    alert('体力不足! 当前:' + playerStamina.value + ' 需要:' + stage.staminaCost)
+  if (playerStamina.value < stage.staminaCost) {
     insufficientStage.value = stage
     showStaminaModal.value = true
     return
   }
   
-  alert('条件满足，设置选中关卡')
-  selectedStage.value = stage
-  alert('selectedStage 已设置: ' + (selectedStage.value ? selectedStage.value.name : 'null'))
+  selectedStage.value = { ...stage }
 }
 
 function confirmBattle() {
