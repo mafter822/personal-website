@@ -41,6 +41,7 @@
         <EquipmentPanel v-else-if="activeTab === 'equipment'" />
         <TowerScene v-else-if="activeTab === 'tower'" @start-battle="startBattle" />
         <ShopPanel v-else-if="activeTab === 'shop'" />
+        <AchievementPanel v-else-if="activeTab === 'achievements'" />
         <GameMenu v-else-if="activeTab === 'menu'" />
       </div>
     </div>
@@ -62,6 +63,7 @@ import ClassTree from '../components/game/ClassTree.vue'
 import FriendList from '../components/game/FriendList.vue'
 import RankingPanel from '../components/game/RankingPanel.vue'
 import RealmPanel from '../components/game/RealmPanel.vue'
+import AchievementPanel from '../components/game/AchievementPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
 const activeTab = ref('home')
@@ -80,6 +82,7 @@ const tabs = [
   { id: 'weapons', icon: '🗡️', label: '武器' },
   { id: 'equipment', icon: '🛡️', label: '装备' },
   { id: 'shop', icon: '🛒', label: '商城' },
+  { id: 'achievements', icon: '🏅', label: '成就' },
   { id: 'menu', icon: '⚙️', label: '设置' },
 ]
 
