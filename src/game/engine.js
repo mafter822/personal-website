@@ -267,16 +267,16 @@ export class BattleEngine {
   executeDisarmSkill(skill) {
     if (Math.random() < skill.chance) {
       this.enemy.weapon = null
-      this.addLog('control', `缴械成功！夺取了 ${this.enemy.name} 的武器`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！夺取了 ${this.enemy.name} 的武器`)
     } else {
-      this.addLog('control', '缴械失败！')
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}已无武器可夺！`)
     }
   }
 
   executeStunSkill(skill) {
     this.enemy.stunTurns = skill.turns
     this.enemy.isStunned = true
-    this.addLog('control', `胶水命中！${this.enemy.name} 被黏住 ${skill.turns} 回合`)
+    this.addLog('control', `${this.player.name}发动【${skill.name}】！${this.enemy.name}被黏住 ${skill.turns} 回合`)
   }
 
   executeIgnoreSkill(skill) {
@@ -284,9 +284,9 @@ export class BattleEngine {
     this.enemy.isIgnored = true
     if (skill.fixedDamage) {
       this.enemy.health = Math.max(0, this.enemy.health - skill.fixedDamage)
-      this.addLog('control', `企鹅吼！忽略 ${skill.turns} 回合，造成 ${skill.fixedDamage} 伤害`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合，造成 ${skill.fixedDamage} 伤害`)
     } else {
-      this.addLog('control', `企鹅吼！忽略 ${skill.turns} 回合`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合`)
     }
   }
 
@@ -297,7 +297,7 @@ export class BattleEngine {
       speedBonus: skill.speedBonus,
       damageBonus: skill.damageBonus,
     })
-    this.addLog('buff', `残影激活！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`)
+    this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`)
   }
 
   enemyTurn() {
@@ -314,19 +314,20 @@ export class BattleEngine {
 
     const stats = this.playerCombatStats
     const enemyStats = { strength: this.enemy.strength, agility: this.enemy.agility, speed: this.enemy.speed }
+    const enemyWeaponName = this.enemy.weapon ? this.enemy.weapon.name : '拳打脚踢'
 
     let damage = CALC.damage(enemyStats, null, null)
 
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)
     if (Math.random() < dodgeChance) {
-      this.addLog('dodge', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name}闪开了！`)
+      this.addLog('dodge', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name}闪开了！`)
       return
     }
 
     const blockChance = this.player.skills.some(s => getSkillById(s.id)?.blockChance) ? 0.3 : 0.15
     if (Math.random() < blockChance) {
       damage = Math.floor(damage * 0.5)
-      this.addLog('block', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name} 格挡了部分伤害！`)
+      this.addLog('block', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name} 格挡了部分伤害！`)
     }
 
     const defReduction = this.playerDamageReduction
@@ -346,7 +347,7 @@ export class BattleEngine {
     }
 
     this.player.health = Math.max(0, this.player.health - damage)
-    this.addLog('enemy_attack', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name}损失 ${damage} 点生命！`)
+    this.addLog('enemy_attack', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name}损失 ${damage} 点生命！`)
 
     if (this.player.health <= 0) {
       const deadSkill = this.player.skills.find(s => {

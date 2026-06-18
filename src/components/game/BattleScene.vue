@@ -273,7 +273,7 @@ async function startAutoBattle() {
     const lastLogs = engine.log.slice(engine.log.length - 5)
     lastLogs.forEach(l => {
       if (l.type !== 'round_start') {
-        addLog('player_attack', l.message)
+        addLog(l.type, l.message)
       }
     })
 
@@ -288,7 +288,7 @@ async function startAutoBattle() {
 
     const enemyLogs = engine.log.slice(engine.log.length - 3)
     enemyLogs.forEach(l => {
-      addLog('enemy_attack', l.message)
+      addLog(l.type, l.message)
     })
 
     currentHp.value = Math.max(0, engine.player.health)
