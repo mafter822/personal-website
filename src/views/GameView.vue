@@ -35,7 +35,6 @@
         <FriendList v-else-if="activeTab === 'friends'" @start-battle="startBattle" />
         <RankingPanel v-else-if="activeTab === 'ranking'" />
         <RealmPanel v-else-if="activeTab === 'realm'" />
-        <ClassTree v-else-if="activeTab === 'class'" />
         <SkillBook v-else-if="activeTab === 'skills'" />
         <WeaponBook v-else-if="activeTab === 'weapons'" />
         <EquipmentPanel v-else-if="activeTab === 'equipment'" />
@@ -67,6 +66,7 @@ import AchievementPanel from '../components/game/AchievementPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
 const activeTab = ref('home')
+const previousTab = ref('stage')
 const battleEnemy = ref(null)
 const battleStageId = ref(null)
 
@@ -86,7 +86,8 @@ const tabs = [
   { id: 'menu', icon: '⚙️', label: '设置' },
 ]
 
-function startBattle({ enemy, stageId }) {
+function startBattle({ enemy, stageId, fromTab }) {
+  previousTab.value = fromTab || 'stage'
   battleEnemy.value = enemy
   battleStageId.value = stageId
   activeTab.value = 'battle'
@@ -95,6 +96,6 @@ function startBattle({ enemy, stageId }) {
 function onBattleEnd() {
   battleEnemy.value = null
   battleStageId.value = null
-  activeTab.value = 'stage'
+  activeTab.value = previousTab.value
 }
 </script>

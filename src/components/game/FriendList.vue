@@ -79,6 +79,7 @@ function battleFriend(friend) {
     stageId: `friend_${friend.id}`,
     isFriend: true,
     friendId: friend.id,
+    fromTab: 'friends',
   })
 }
 </script>

@@ -124,6 +124,7 @@ function challengeFloor() {
     enemy: currentEnemy.value,
     stageId: `tower_${currentFloor.value}`,
     isTower: true,
+    fromTab: 'tower',
   })
 }
 

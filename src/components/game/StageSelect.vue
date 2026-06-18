@@ -141,7 +141,7 @@ function handleStageClick(stage) {
   }
   
   consumeStamina(stage.staminaCost)
-  emit('start-battle', { enemy: stage.enemy, stageId: stage.id })
+  emit('start-battle', { enemy: stage.enemy, stageId: stage.id, fromTab: 'stage' })
 }
 
 function handleRest() {
