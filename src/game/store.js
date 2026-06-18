@@ -37,9 +37,6 @@ function getDefaultState() {
       streak: 0,
       maxStreak: 0,
     },
-    settings: {
-      autoSave: true,
-    },
   }
 }
 
@@ -67,6 +64,12 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY)
     if (saved) {
       const data = JSON.parse(saved)
+      const defaultState = getDefaultState()
+      if (!data.settings) data.settings = defaultState.settings
+      if (!data.settings.battleSpeed) data.settings.battleSpeed = 2
+      if (!data.settings.lastStaminaRecover) data.settings.lastStaminaRecover = Date.now()
+      if (!data.stats) data.stats = defaultState.stats
+      if (!data.player) data.player = defaultState.player
       Object.assign(gameState, data)
     }
   } catch (e) {
