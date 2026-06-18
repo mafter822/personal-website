@@ -39,7 +39,6 @@
         </div>
       </div>
 
-      <!-- HP Bars -->
       <div class="grid grid-cols-2 gap-4 mt-4">
         <div>
           <div class="text-xs text-text-secondary mb-1">❤️ {{ Math.max(0, currentHp) }}/{{ maxHp }}</div>
@@ -82,18 +81,70 @@
       </div>
     </div>
 
-    <!-- Result -->
-    <div v-if="battleFinished" class="card p-6 text-center">
-      <div class="text-4xl mb-4">{{ won ? '🎉' : '😢' }}</div>
-      <h3 class="text-xl font-bold mb-2">
-        {{ won ? '战斗胜利！' : '战斗失败...' }}
-      </h3>
-      <div v-if="rewards" class="text-text-secondary mb-4">
-        获得: {{ rewards.exp }} 经验, {{ rewards.spirit }} 精魄
+    <!-- Battle Settlement -->
+    <div v-if="battleFinished" class="card p-6">
+      <div class="text-center mb-6">
+        <div class="text-5xl mb-4">{{ won ? '🎉' : '😢' }}</div>
+        <h3 class="text-2xl font-bold mb-2">
+          {{ won ? '战斗胜利！' : '战斗失败...' }}
+        </h3>
       </div>
-      <button @click="$emit('battle-end')" class="btn-primary">
-        返回乐斗
-      </button>
+
+      <!-- Rewards -->
+      <div v-if="won && rewards" class="space-y-4">
+        <div class="bg-bg-card rounded-lg p-4">
+          <h4 class="font-semibold mb-3">📦 战斗奖励</h4>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-500">⭐</span>
+              <span>经验 +{{ rewards.exp }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-purple-500">💎</span>
+              <span>精魄 +{{ rewards.spirit }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level Up -->
+        <div v-if="leveledUp" class="bg-primary/10 border border-primary/30 rounded-lg p-4">
+          <h4 class="font-semibold mb-2 text-primary">🎊 升级了！</h4>
+          <div class="text-sm space-y-1">
+            <div>Lv.{{ oldLevel }} → Lv.{{ state.player.level }}</div>
+            <div class="text-text-secondary">力量 +{{ levelUpStats.strength }} · 敏捷 +{{ levelUpStats.agility }} · 速度 +{{ levelUpStats.speed }} · 生命 +{{ levelUpStats.health }}</div>
+          </div>
+        </div>
+
+        <!-- New Skills -->
+        <div v-if="newSkills.length > 0" class="bg-accent/10 border border-accent/30 rounded-lg p-4">
+          <h4 class="font-semibold mb-2 text-accent">✨ 获得新技能</h4>
+          <div class="space-y-2">
+            <div v-for="skill in newSkills" :key="skill.id" class="flex items-center gap-2 text-sm">
+              <span class="text-lg">{{ skill.icon }}</span>
+              <span class="font-medium text-accent">{{ skill.name }}</span>
+              <span class="text-text-secondary">- {{ skill.desc }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Weapons -->
+        <div v-if="newWeapons.length > 0" class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+          <h4 class="font-semibold mb-2 text-blue-500">🗡️ 获得新武器</h4>
+          <div class="space-y-2">
+            <div v-for="weapon in newWeapons" :key="weapon.id" class="flex items-center gap-2 text-sm">
+              <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: getWeaponColor(weapon.quality) }"></span>
+              <span class="font-medium" :style="{ color: getWeaponColor(weapon.quality) }">{{ weapon.name }}</span>
+              <span class="text-text-secondary">- {{ weapon.desc }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 text-center">
+        <button @click="$emit('battle-end')" class="btn-primary px-8">
+          返回乐斗
+        </button>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -108,6 +159,8 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { BattleEngine } from '../../game/engine.js'
+import { WEAPON_QUALITY } from '../../game/data/weapons.js'
+import { getSkillById as getSkillData } from '../../game/data/skills.js'
 
 const props = defineProps({
   enemy: Object,
@@ -132,6 +185,12 @@ const battleSpeed = ref(getBattleSpeed())
 const currentRound = ref(0)
 const logContainer = ref(null)
 
+const leveledUp = ref(false)
+const oldLevel = ref(0)
+const levelUpStats = ref({ strength: 0, agility: 0, speed: 0, health: 0 })
+const newSkills = ref([])
+const newWeapons = ref([])
+
 function updateSpeed(s) {
   battleSpeed.value = s
   setBattleSpeed(s)
@@ -139,6 +198,10 @@ function updateSpeed(s) {
 
 const playerHpPercent = computed(() => maxHp.value > 0 ? (currentHp.value / maxHp.value) * 100 : 0)
 const enemyHpPercent = computed(() => enemyMaxHp.value > 0 ? (enemyHp.value / enemyMaxHp.value) * 100 : 0)
+
+function getWeaponColor(quality) {
+  return WEAPON_QUALITY[quality]?.color || '#9ca3af'
+}
 
 function logColor(type) {
   const map = {
@@ -182,6 +245,7 @@ async function startAutoBattle() {
 
   playerName.value = state.player.name
   playerLevel.value = state.player.level
+  oldLevel.value = state.player.level
   maxHp.value = stats.maxHealth
   currentHp.value = stats.maxHealth
   enemyMaxHp.value = props.enemy.health
@@ -251,15 +315,44 @@ async function startAutoBattle() {
   if (engine.winner === 'player') {
     won.value = true
     rewards.value = engine.rewards
-    addExp(engine.rewards.exp)
+
+    const oldSkillCount = state.skills.length
+    const oldWeaponCount = state.weapons.length
+
+    const expResult = addExp(engine.rewards.exp)
     addSpirit(engine.rewards.spirit)
     addWin()
+
+    if (state.player.level > oldLevel.value) {
+      leveledUp.value = true
+      levelUpStats.value = {
+        strength: (state.player.level - oldLevel.value) * 3 + 2,
+        agility: (state.player.level - oldLevel.value) * 2 + 1,
+        speed: (state.player.level - oldLevel.value) * 2 + 1,
+        health: (state.player.level - oldLevel.value) * 15,
+      }
+    }
+
+    if (state.skills.length > oldSkillCount) {
+      newSkills.value = state.skills.slice(oldSkillCount).map(s => {
+        const skillData = getSkillById(s.id)
+        return skillData || { id: s.id, name: s.id, icon: '❓', desc: '未知技能' }
+      })
+    }
+
+    if (state.weapons.length > oldWeaponCount) {
+      newWeapons.value = state.weapons.slice(oldWeaponCount)
+    }
   } else {
     won.value = false
     addLoss()
   }
 
   battleFinished.value = true
+}
+
+function getSkillById(id) {
+  return getSkillData(id)
 }
 
 onMounted(() => {

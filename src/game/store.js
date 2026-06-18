@@ -88,12 +88,26 @@ function resetGame() {
   gameState.towerFloor = 0
 }
 
+function addRandomAttributes(count) {
+  const stats = ['strength', 'agility', 'speed']
+  const bonus = { strength: 0, agility: 0, speed: 0 }
+  for (let i = 0; i < count; i++) {
+    const stat = stats[Math.floor(Math.random() * stats.length)]
+    gameState.player[stat]++
+    bonus[stat]++
+  }
+  return bonus
+}
+
 function addExp(amount) {
   gameState.player.exp += amount
   const newSkills = []
   const newWeapons = []
+  const levelUpDetails = []
+
   while (gameState.player.exp >= getExpForLevel(gameState.player.level) && gameState.player.level < 50) {
     gameState.player.exp -= getExpForLevel(gameState.player.level)
+    const oldLevel = gameState.player.level
     gameState.player.level++
     gameState.player.strength += 3
     gameState.player.agility += 2
@@ -103,6 +117,12 @@ function addExp(amount) {
     gameState.player.stamina = Math.min(100, gameState.player.stamina + 20)
     gameState.player.spirit += 2
     updateTitle()
+
+    const randomBonus = addRandomAttributes(2)
+    levelUpDetails.push({
+      level: gameState.player.level,
+      randomBonus,
+    })
 
     const ownedSkillIds = gameState.skills.map(s => s.id)
     const newSkill = rollSkill(gameState.player.level, ownedSkillIds)

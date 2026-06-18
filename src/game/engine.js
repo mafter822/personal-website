@@ -189,6 +189,7 @@ export class BattleEngine {
   executeAttack(skill) {
     const stats = this.playerCombatStats
     const weapon = this.player.weapon
+    const weaponName = weapon ? weapon.name : '拳头'
 
     let damage = CALC.damage(stats, weapon, skill)
 
@@ -196,19 +197,19 @@ export class BattleEngine {
       if (Math.random() < weapon.special.chance) {
         const comboDamage = CALC.damage(stats, weapon, null)
         damage += comboDamage
-        this.addLog('combo', `连击！造成 ${comboDamage} 额外伤害`)
+        this.addLog('combo', `【${weaponName}】连击！追加一击！再损失 ${comboDamage} 点！`)
       }
     }
 
     const critChance = CALC.critRate(stats.agility)
     if (Math.random() < critChance) {
       damage = Math.floor(damage * 1.5)
-      this.addLog('crit', `暴击！造成 ${damage} 伤害`)
+      this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`)
     }
 
     const dodgeChance = CALC.dodgeRate(this.enemy.agility, this.enemy.speed)
     if (Math.random() < dodgeChance) {
-      this.addLog('dodge', `${this.enemy.name} 闪避了攻击！`)
+      this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`)
       return
     }
 
@@ -221,7 +222,12 @@ export class BattleEngine {
     }
 
     this.enemy.health = Math.max(0, this.enemy.health - damage)
-    this.addLog('attack', `你造成 ${damage} 伤害`)
+
+    if (skill) {
+      this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`)
+    } else {
+      this.addLog('attack', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}损失 ${damage} 点生命！`)
+    }
 
     if (skill && skill.noCounter) {
       this.addLog('special', '无法被反击！')
@@ -313,14 +319,14 @@ export class BattleEngine {
 
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)
     if (Math.random() < dodgeChance) {
-      this.addLog('dodge', `你闪避了 ${this.enemy.name} 的攻击！`)
+      this.addLog('dodge', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name}闪开了！`)
       return
     }
 
     const blockChance = this.player.skills.some(s => getSkillById(s.id)?.blockChance) ? 0.3 : 0.15
     if (Math.random() < blockChance) {
       damage = Math.floor(damage * 0.5)
-      this.addLog('block', `格挡了部分伤害！`)
+      this.addLog('block', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name} 格挡了部分伤害！`)
     }
 
     const defReduction = this.playerDamageReduction
@@ -340,7 +346,7 @@ export class BattleEngine {
     }
 
     this.player.health = Math.max(0, this.player.health - damage)
-    this.addLog('enemy_attack', `${this.enemy.name} 造成 ${damage} 伤害`)
+    this.addLog('enemy_attack', `${this.enemy.name}用【拳打脚踢】攻击！${this.player.name}损失 ${damage} 点生命！`)
 
     if (this.player.health <= 0) {
       const deadSkill = this.player.skills.find(s => {

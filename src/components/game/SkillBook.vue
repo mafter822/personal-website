@@ -40,7 +40,8 @@
           </div>
           <div class="flex items-center gap-2">
             <span v-if="ownedSkill" class="text-xs text-green-600">✓</span>
-            <span class="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
+            <span class="text-xs px-2 py-0.5 rounded font-medium"
+              :class="ownedSkill && ownedSkill.level > 0 ? 'bg-accent text-white' : 'bg-primary/10 text-primary'">
               Lv.{{ ownedSkill ? ownedSkill.level : 0 }}/{{ skill.maxLevel }}
             </span>
           </div>
