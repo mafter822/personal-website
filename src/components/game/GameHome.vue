@@ -29,10 +29,10 @@
           <div class="mb-2">
             <div class="flex justify-between text-xs mb-1">
               <span class="text-text-secondary">⚡ 体力</span>
-              <span>{{ state.player.stamina }}/100</span>
+              <span>{{ state.player.stamina }}/{{ maxStamina }}</span>
             </div>
             <div class="h-3 bg-bg-card rounded-full overflow-hidden">
-              <div class="h-full bg-amber-500 rounded-full transition-all" :style="{ width: state.player.stamina + '%' }"></div>
+              <div class="h-full bg-amber-500 rounded-full transition-all" :style="{ width: staminaPercent + '%' }"></div>
             </div>
           </div>
 
@@ -91,19 +91,71 @@
     </div>
 
     <!-- Equipped Weapon -->
-    <div class="card p-4" v-if="equippedWeapon">
-      <div class="flex items-center justify-between">
-        <div>
-          <span class="text-xs text-text-secondary">装备武器</span>
-          <div class="font-medium" :style="{ color: qualityColor }">{{ equippedWeapon.name }}</div>
+    <div class="card p-4">
+      <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+        <span>🗡️</span> 装备武器
+      </h3>
+      <div v-if="equippedWeapon" class="flex items-center justify-between p-3 bg-bg-card rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="w-4 h-4 rounded-full" :style="{ backgroundColor: qualityColor }"></span>
+          <div>
+            <div class="font-medium" :style="{ color: qualityColor }">{{ equippedWeapon.name }}</div>
+            <div class="text-xs text-text-secondary">{{ weaponDamageRange }} · {{ weaponSpecial }}</div>
+          </div>
         </div>
-        <span class="text-xs px-2 py-1 rounded" :style="{ backgroundColor: qualityColor + '20', color: qualityColor }">
+        <span class="text-xs px-2 py-1 rounded font-medium" :style="{ backgroundColor: qualityColor + '20', color: qualityColor }">
           +{{ equippedWeapon.enhanceLevel }}
         </span>
       </div>
+      <div v-else class="text-center text-text-muted text-sm py-4">
+        暂未装备武器
+      </div>
     </div>
-    <div class="card p-4 text-center text-text-secondary text-sm" v-else>
-      暂未装备武器
+
+    <!-- Skills -->
+    <div class="card p-4">
+      <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+        <span>✨</span> 已学技能
+        <span class="text-xs text-text-muted">({{ state.skills.length }}/32)</span>
+      </h3>
+      <div v-if="state.skills.length > 0" class="flex flex-wrap gap-2">
+        <div
+          v-for="skill in state.skills"
+          :key="skill.id"
+          class="px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-all hover:scale-105"
+          :class="getSkillStyle(skill)"
+        >
+          <span>{{ getSkillIcon(skill.id) }}</span>
+          <span class="font-medium">{{ getSkillName(skill.id) }}</span>
+          <span class="text-xs opacity-70">Lv.{{ skill.level }}</span>
+        </div>
+      </div>
+      <div v-else class="text-center text-text-muted text-sm py-4">
+        暂未学习技能
+      </div>
+    </div>
+
+    <!-- Weapons -->
+    <div class="card p-4">
+      <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+        <span>🗡️</span> 武器库
+        <span class="text-xs text-text-muted">({{ state.weapons.length }})</span>
+      </h3>
+      <div v-if="state.weapons.length > 0" class="flex flex-wrap gap-2">
+        <div
+          v-for="weapon in state.weapons"
+          :key="weapon.id"
+          class="px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-all hover:scale-105"
+          :class="getWeaponStyle(weapon)"
+        >
+          <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: getWeaponColor(weapon.quality) }"></span>
+          <span class="font-medium">{{ weapon.name }}</span>
+          <span v-if="weapon.enhanceLevel > 0" class="text-xs opacity-70">+{{ weapon.enhanceLevel }}</span>
+        </div>
+      </div>
+      <div v-else class="text-center text-text-muted text-sm py-4">
+        暂无武器
+      </div>
     </div>
   </div>
 </template>
@@ -113,12 +165,16 @@ import { computed } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { EXP_PER_LEVEL } from '../../game/data/constants.js'
 import { QUALITY_COLORS } from '../../game/data/constants.js'
+import { getSkillById } from '../../game/data/skills.js'
+import { WEAPON_QUALITY } from '../../game/data/weapons.js'
 
 const { state, getCombatStats, getEquippedWeapon } = gameStore
 
 const combatStats = computed(() => getCombatStats())
 const maxHealth = computed(() => combatStats.value.maxHealth)
+const maxStamina = computed(() => 100 + (state.player.level - 1) * 5)
 const healthPercent = computed(() => (state.player.health / maxHealth.value) * 100)
+const staminaPercent = computed(() => (state.player.stamina / maxStamina.value) * 100)
 const expForLevel = computed(() => EXP_PER_LEVEL(state.player.level))
 const expPercent = computed(() => (state.player.exp / expForLevel.value) * 100)
 
@@ -132,4 +188,58 @@ const qualityColor = computed(() => {
   if (!equippedWeapon.value) return '#9ca3af'
   return QUALITY_COLORS[equippedWeapon.value.quality] || '#9ca3af'
 })
+
+const weaponDamageRange = computed(() => {
+  if (!equippedWeapon.value) return ''
+  const w = equippedWeapon.value
+  const bonus = (w.enhanceLevel || 0) * 0.1
+  return `${Math.floor(w.baseDamage[0] * (1 + bonus))} ~ ${Math.floor(w.baseDamage[1] * (1 + bonus))}`
+})
+
+const weaponSpecial = computed(() => {
+  if (!equippedWeapon.value || !equippedWeapon.value.special) return '无特效'
+  const s = equippedWeapon.value.special
+  const map = {
+    combo: `连击${Math.round(s.chance * 100)}%`,
+    stun: `眩晕${Math.round(s.chance * 100)}%`,
+    crit: `暴击${Math.round(s.chance * 100)}%`,
+    sureHit: '必中',
+    noRest: '无需休息',
+    ignoreUndying: '忽略装死',
+    dodgeCounter: '闪避反击',
+  }
+  return map[s.type] || s.type
+})
+
+function getSkillName(id) {
+  const skill = getSkillById(id)
+  return skill ? skill.name : id
+}
+
+function getSkillIcon(id) {
+  const skill = getSkillById(id)
+  return skill ? skill.icon : '❓'
+}
+
+function getSkillStyle(skill) {
+  const skillData = getSkillById(skill.id)
+  if (!skillData) return 'bg-bg-card text-text-secondary'
+  
+  const tierStyles = {
+    T0: 'bg-red-500/20 text-red-400 border border-red-500/30',
+    T1: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+    T2: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+    T3: 'bg-green-500/20 text-green-400 border border-green-500/30',
+  }
+  return tierStyles[skillData.tier] || 'bg-bg-card text-text-secondary'
+}
+
+function getWeaponColor(quality) {
+  return WEAPON_QUALITY[quality]?.color || '#9ca3af'
+}
+
+function getWeaponStyle(weapon) {
+  const color = getWeaponColor(weapon.quality)
+  return `bg-opacity-20 border border-opacity-30`
+}
 </script>
