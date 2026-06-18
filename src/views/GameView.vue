@@ -34,6 +34,7 @@
         <SkillBook v-else-if="activeTab === 'skills'" />
         <WeaponBook v-else-if="activeTab === 'weapons'" />
         <Inventory v-else-if="activeTab === 'inventory'" />
+        <TowerScene v-else-if="activeTab === 'tower'" @start-battle="startBattle" />
         <GameMenu v-else-if="activeTab === 'menu'" />
       </div>
     </div>
@@ -48,6 +49,7 @@ import BattleScene from '../components/game/BattleScene.vue'
 import SkillBook from '../components/game/SkillBook.vue'
 import WeaponBook from '../components/game/WeaponBook.vue'
 import Inventory from '../components/game/Inventory.vue'
+import TowerScene from '../components/game/TowerScene.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
 const activeTab = ref('home')
@@ -57,6 +59,7 @@ const battleStageId = ref(null)
 const tabs = [
   { id: 'home', icon: '🏠', label: '地盘' },
   { id: 'stage', icon: '⚔️', label: '乐斗' },
+  { id: 'tower', icon: '🗼', label: '斗神塔' },
   { id: 'skills', icon: '✨', label: '技能' },
   { id: 'weapons', icon: '🗡️', label: '武器' },
   { id: 'inventory', icon: '🎒', label: '背包' },

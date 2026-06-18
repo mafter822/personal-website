@@ -30,7 +30,7 @@ function getDefaultState() {
     equippedWeapon: null,
     inventory: [],
     stagesCleared: [],
-    towerFloor: 0,
+    towerProgress: { maxFloor: 0, dailyUsed: 0, lastResetDate: null },
     stats: {
       wins: 0,
       losses: 0,
@@ -85,7 +85,7 @@ function resetGame() {
   gameState.weapons = []
   gameState.equippedWeapon = null
   gameState.stagesCleared = []
-  gameState.towerFloor = 0
+  gameState.towerProgress = { maxFloor: 0, dailyUsed: 0, lastResetDate: null }
 }
 
 function addRandomAttributes(count) {
