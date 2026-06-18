@@ -64,13 +64,21 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY)
     if (saved) {
       const data = JSON.parse(saved)
-      const defaultState = getDefaultState()
-      if (!data.settings) data.settings = defaultState.settings
-      if (!data.settings.battleSpeed) data.settings.battleSpeed = 2
-      if (!data.settings.lastStaminaRecover) data.settings.lastStaminaRecover = Date.now()
-      if (!data.stats) data.stats = defaultState.stats
-      if (!data.player) data.player = defaultState.player
-      Object.assign(gameState, data)
+      if (data.player) {
+        gameState.player = { ...getDefaultState().player, ...data.player }
+      }
+      if (data.settings) {
+        gameState.settings = { ...getDefaultState().settings, ...data.settings }
+      }
+      if (data.stats) {
+        gameState.stats = { ...getDefaultState().stats, ...data.stats }
+      }
+      gameState.skills = data.skills || []
+      gameState.weapons = data.weapons || []
+      gameState.equippedWeapon = data.equippedWeapon || null
+      gameState.inventory = data.inventory || []
+      gameState.stagesCleared = data.stagesCleared || []
+      gameState.towerFloor = data.towerFloor || 0
     }
   } catch (e) {
     console.error('Failed to load game:', e)
@@ -78,7 +86,17 @@ function loadGame() {
 }
 
 function resetGame() {
-  Object.assign(gameState, getDefaultState())
+  localStorage.removeItem(SAVE_KEY)
+  const fresh = getDefaultState()
+  gameState.player = fresh.player
+  gameState.settings = fresh.settings
+  gameState.skills = []
+  gameState.weapons = []
+  gameState.equippedWeapon = null
+  gameState.inventory = []
+  gameState.stagesCleared = []
+  gameState.towerFloor = 0
+  gameState.stats = { wins: 0, losses: 0, streak: 0, maxStreak: 0 }
   saveGame()
 }
 
