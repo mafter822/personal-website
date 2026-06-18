@@ -91,6 +91,7 @@ function addExp(amount) {
     gameState.player.speed += 2
     gameState.player.maxHealth += 15
     gameState.player.health = gameState.player.maxHealth
+    gameState.player.stamina = Math.min(100, gameState.player.stamina + 20)
     gameState.player.spirit += 2
     updateTitle()
 
