@@ -56,11 +56,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { SHOP_ITEMS, getShopItemById } from '../../game/data/shop.js'
 
 const { state, addExp, addSpirit } = gameStore
+const showToast = inject('showToast')
 
 const shopItems = SHOP_ITEMS
 
@@ -91,7 +92,7 @@ function buyItem(item) {
 
   applyEffect(item.effect)
 
-  alert(`购买成功: ${item.name}`)
+  showToast(`购买成功: ${item.name}`, 'success')
 }
 
 function applyEffect(effect) {

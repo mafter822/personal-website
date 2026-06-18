@@ -70,11 +70,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { REALMS, getCurrentRealm, getNextRealm } from '../../game/data/realms.js'
 
 const { state } = gameStore
+const showToast = inject('showToast')
 
 const realms = REALMS
 
@@ -95,7 +96,7 @@ function breakthrough() {
   const realm = nextRealm.value
   state.player.realmBonus = { ...realm.bonus }
   
-  alert(`突破成功！达到 ${realm.name} 境界！全属性+${realm.bonus.strength}`)
+  showToast(`突破成功！达到 ${realm.name} 境界！全属性+${realm.bonus.strength}`, 'success')
 }
 
 function statName(stat) {

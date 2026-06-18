@@ -52,9 +52,11 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 
 const { state, resetGame } = gameStore
+const showToast = inject('showToast')
 
 const allTabs = [
   { id: 'home', icon: '🏠', label: '地盘' },
@@ -98,10 +100,10 @@ function handleImport(e) {
       const data = JSON.parse(ev.target.result)
       Object.assign(state, data)
       gameStore.saveGame()
-      alert('存档导入成功！')
+      showToast('存档导入成功！', 'success')
       window.location.reload()
     } catch (err) {
-      alert('存档文件格式错误')
+      showToast('存档文件格式错误', 'error')
     }
   }
   reader.readAsText(file)

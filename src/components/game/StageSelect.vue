@@ -93,12 +93,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { STAGES } from '../../game/data/stages.js'
 
 const emit = defineEmits(['start-battle'])
 const { state, consumeStamina, restRecover, recoverStaminaByTime } = gameStore
+const showToast = inject('showToast')
 
 const showStaminaModal = ref(false)
 const showLevelModal = ref(false)
@@ -148,9 +149,9 @@ function handleStageClick(stage) {
 function handleRest() {
   const amount = restRecover()
   if (amount > 0) {
-    alert(`休息恢复了 ${amount} 点体力！`)
+    showToast(`休息恢复了 ${amount} 点体力！`, 'success')
   } else {
-    alert('体力已满！')
+    showToast('体力已满！', 'info')
   }
 }
 
@@ -158,7 +159,7 @@ function handleRestFromModal() {
   const amount = restRecover()
   showStaminaModal.value = false
   if (amount > 0) {
-    alert(`休息恢复了 ${amount} 点体力！`)
+    showToast(`休息恢复了 ${amount} 点体力！`, 'success')
   }
 }
 </script>

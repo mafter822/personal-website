@@ -81,11 +81,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { CLASSES, getClassById } from '../../game/data/classes.js'
 
 const { state } = gameStore
+const showToast = inject('showToast')
 
 const classes = CLASSES
 
@@ -99,7 +100,7 @@ const skillPoints = computed(() => {
 
 function selectClass(cls) {
   if (state.player.level < cls.unlockLevel) {
-    alert(`需要 Lv.${cls.unlockLevel}+ 才能选择此职业`)
+    showToast(`需要 Lv.${cls.unlockLevel}+ 才能选择此职业`, 'warning')
     return
   }
   state.player.classId = cls.id

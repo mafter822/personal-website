@@ -171,7 +171,7 @@ const props = defineProps({
 
 const emit = defineEmits(['battle-end'])
 
-const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss, getBattleSpeed, setBattleSpeed, increaseFriendIntimacy } = gameStore
+const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss, getBattleSpeed, setBattleSpeed, increaseFriendIntimacy, addEquipment } = gameStore
 
 const log = ref([])
 const currentHp = ref(0)
@@ -376,8 +376,8 @@ async function startAutoBattle() {
       const possibleEquipment = EQUIPMENT_DATABASE.filter(e => e.reqLevel <= state.player.level)
       if (possibleEquipment.length > 0) {
         const dropped = possibleEquipment[Math.floor(Math.random() * possibleEquipment.length)]
-        if (!state.weapons.find(w => w.id === dropped.id)) {
-          state.weapons.push({ ...dropped, enhanceLevel: 0 })
+        if (!state.equipment?.find(e => e.id === dropped.id)) {
+          addEquipment(dropped)
           droppedEquipment.value.push(dropped)
         }
       }

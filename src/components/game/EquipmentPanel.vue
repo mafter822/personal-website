@@ -48,7 +48,7 @@
     <!-- Inventory -->
     <div class="card p-4">
       <h4 class="font-medium mb-3">🎒 已拥有装备</h4>
-      <div v-if="state.weapons.length === 0 && ownedEquipment.length === 0" class="text-center text-text-muted text-sm py-4">
+      <div v-if="ownedEquipment.length === 0" class="text-center text-text-muted text-sm py-4">
         暂无装备
       </div>
       <div v-else class="space-y-2">
@@ -75,40 +75,33 @@ import { computed } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { EQUIPMENT_SLOTS, EQUIPMENT_DATABASE, EQUIPMENT_SETS, getEquipmentById } from '../../game/data/equipment.js'
 
-const { state } = gameStore
+const { state, equipEquipment, unequipEquipment } = gameStore
 
 const slots = EQUIPMENT_SLOTS
 
 const ownedEquipment = computed(() => {
-  return EQUIPMENT_DATABASE.filter(e => {
-    return state.weapons.some(w => w.id === e.id) ||
-           (state.inventory && state.inventory[e.id])
-  })
+  return state.equipment || []
 })
 
 const activeSets = computed(() => {
-  const equippedIds = Object.values(state.equipment?.equipped || {}).filter(Boolean)
+  const equippedIds = Object.values(state.equippedEquipment || {}).filter(Boolean)
   return EQUIPMENT_SETS.filter(set => {
     return set.pieces.every(piece => equippedIds.includes(piece))
   })
 })
 
 function getEquipped(slot) {
-  const equippedId = state.equipment?.equipped?.[slot]
+  const equippedId = state.equippedEquipment?.[slot]
   if (!equippedId) return null
   return getEquipmentById(equippedId)
 }
 
 function equip(item) {
-  if (!state.equipment) state.equipment = { equipped: {}, inventory: [] }
-  if (!state.equipment.equipped) state.equipment.equipped = {}
-  state.equipment.equipped[item.slot] = item.id
+  equipEquipment(item.slot, item.id)
 }
 
 function unequip(slot) {
-  if (state.equipment?.equipped) {
-    state.equipment.equipped[slot] = null
-  }
+  unequipEquipment(slot)
 }
 
 function getQualityColor(quality) {

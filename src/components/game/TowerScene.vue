@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { TOWER_CONFIG, getFloorEnemy, getSweepRewards } from '../../game/data/tower.js'
 import { BattleEngine } from '../../game/engine.js'
@@ -107,6 +107,7 @@ import { BattleEngine } from '../../game/engine.js'
 const emit = defineEmits(['start-battle'])
 
 const { state, consumeStamina, addExp, addSpirit, addWin, addLoss } = gameStore
+const showToast = inject('showToast')
 
 const towerLog = ref([])
 
@@ -145,6 +146,6 @@ function sweepPrevious() {
     spirit: rewards.spirit,
   })
 
-  alert(`扫荡第${sweepFloor}层成功！获得 ${rewards.exp} 经验, ${rewards.spirit} 精魄`)
+  showToast(`扫荡第${sweepFloor}层成功！获得 ${rewards.exp} 经验, ${rewards.spirit} 精魄`, 'success')
 }
 </script>
