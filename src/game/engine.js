@@ -1,5 +1,7 @@
 import { CALC, SPIRIT_PER_WIN } from './data/constants.js'
 import { getSkillById } from './data/skills.js'
+import { CLASSES } from './data/classes.js'
+import { NPC_SKILLS } from './data/pets.js'
 
 export class BattleEngine {
   constructor(player, enemy, playerSkills, equippedWeapon) {
@@ -90,7 +92,6 @@ export class BattleEngine {
 
   getClassBonus() {
     try {
-      const { CLASSES } = require('./data/classes.js')
       const cls = CLASSES.find(c => c.id === this.player.classId)
       if (!cls) return {}
       const classSkills = this.player.classSkills?.[this.player.classId]?.allocated || {}
@@ -365,7 +366,6 @@ export class BattleEngine {
 
   chooseEnemySkill() {
     try {
-      const { NPC_SKILLS } = require('./data/pets.js')
       if (!this.enemy.skills || this.enemy.skills.length === 0) return null
       
       const weightedSkills = []

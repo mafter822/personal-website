@@ -21,6 +21,8 @@ export const NPC_SKILLS = {
   ultimate_slam: { name: '终极重击', effect: 'damage', damageMul: 2.5, desc: '全力一击' },
   ice_age: { name: '冰河时代', effect: 'damage', damageMul: 3.0, desc: '召唤冰河时代' },
   basic_attack: { name: '普通攻击', effect: 'damage', damageMul: 1.0, desc: '普通攻击' },
+  claw_strike: { name: '利爪撕裂', effect: 'damage', damageMul: 1.4, desc: '锋利的爪击' },
+  aurora_beam: { name: '极光射线', effect: 'damage', damageMul: 2.0, desc: '释放极光能量' },
 }
 
 
