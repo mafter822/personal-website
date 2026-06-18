@@ -1,5 +1,24 @@
 <template>
   <div class="space-y-4">
+    <!-- Speed Control -->
+    <div class="flex items-center justify-between">
+      <button @click="$emit('battle-end')" class="text-sm text-text-secondary hover:text-primary transition-colors">
+        ← 返回乐斗
+      </button>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-text-secondary">速度:</span>
+        <button
+          v-for="s in [1, 2, 3]"
+          :key="s"
+          @click="battleSpeed = s"
+          class="px-2 py-1 text-xs rounded transition-colors"
+          :class="battleSpeed === s ? 'bg-primary text-white' : 'bg-bg-card text-text-secondary'"
+        >
+          {{ s }}x
+        </button>
+      </div>
+    </div>
+
     <!-- Battle Status -->
     <div class="card p-4">
       <div class="flex items-center justify-between mb-3">
@@ -25,13 +44,13 @@
         <div>
           <div class="text-xs text-text-secondary mb-1">❤️ {{ Math.max(0, currentHp) }}/{{ maxHp }}</div>
           <div class="h-3 bg-bg-card rounded-full overflow-hidden">
-            <div class="h-full bg-green-500 rounded-full transition-all duration-500" :style="{ width: playerHpPercent + '%' }"></div>
+            <div class="h-full bg-green-500 rounded-full transition-all duration-300" :style="{ width: playerHpPercent + '%' }"></div>
           </div>
         </div>
         <div>
           <div class="text-xs text-text-secondary mb-1">❤️ {{ Math.max(0, enemyHp) }}/{{ enemyMaxHp }}</div>
           <div class="h-3 bg-bg-card rounded-full overflow-hidden">
-            <div class="h-full bg-red-500 rounded-full transition-all duration-500" :style="{ width: enemyHpPercent + '%' }"></div>
+            <div class="h-full bg-red-500 rounded-full transition-all duration-300" :style="{ width: enemyHpPercent + '%' }"></div>
           </div>
         </div>
       </div>
@@ -39,8 +58,11 @@
 
     <!-- Battle Log -->
     <div class="card p-4" v-if="log.length > 0">
-      <h3 class="font-semibold mb-3">⚔️ 战斗详情</h3>
-      <div class="max-h-96 overflow-y-auto space-y-1">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold">⚔️ 战斗详情</h3>
+        <span class="text-xs text-text-muted">第 {{ currentRound }} 回合</span>
+      </div>
+      <div ref="logContainer" class="max-h-80 overflow-y-auto space-y-1">
         <div
           v-for="(entry, i) in log"
           :key="i"
@@ -70,7 +92,7 @@
         获得: {{ rewards.exp }} 经验, {{ rewards.spirit }} 精魄
       </div>
       <button @click="$emit('battle-end')" class="btn-primary">
-        返回
+        返回乐斗
       </button>
     </div>
 
@@ -83,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { BattleEngine } from '../../game/engine.js'
 
@@ -106,6 +128,9 @@ const playerLevel = ref(0)
 const battleFinished = ref(false)
 const won = ref(false)
 const rewards = ref(null)
+const battleSpeed = ref(2)
+const currentRound = ref(0)
+const logContainer = ref(null)
 
 const playerHpPercent = computed(() => maxHp.value > 0 ? (currentHp.value / maxHp.value) * 100 : 0)
 const enemyHpPercent = computed(() => enemyMaxHp.value > 0 ? (enemyHp.value / enemyMaxHp.value) * 100 : 0)
@@ -135,6 +160,15 @@ function logColor(type) {
 
 function addLog(type, message, extra = {}) {
   log.value.push({ type, message, ...extra })
+  nextTick(() => {
+    if (logContainer.value) {
+      logContainer.value.scrollTop = logContainer.value.scrollHeight
+    }
+  })
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms / battleSpeed.value))
 }
 
 async function startAutoBattle() {
@@ -157,11 +191,12 @@ async function startAutoBattle() {
   engine.start()
 
   addLog('round_start', '', { round: 1 })
+  currentRound.value = 1
 
   for (let round = 1; round <= 50; round++) {
     if (engine.isOver) break
 
-    await sleep(800)
+    await sleep(400)
 
     const playerSkill = engine.autoSelectSkill()
     engine.playerTurn(playerSkill)
@@ -178,7 +213,7 @@ async function startAutoBattle() {
 
     if (engine.isOver) break
 
-    await sleep(600)
+    await sleep(300)
 
     engine.enemyTurn()
 
@@ -201,11 +236,12 @@ async function startAutoBattle() {
     if (engine.isOver) break
 
     if (round < 50) {
+      currentRound.value = round + 1
       addLog('round_start', '', { round: round + 1 })
     }
   }
 
-  await sleep(500)
+  await sleep(300)
 
   if (engine.winner === 'player') {
     won.value = true
@@ -219,10 +255,6 @@ async function startAutoBattle() {
   }
 
   battleFinished.value = true
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 onMounted(() => {

@@ -72,6 +72,6 @@ function startBattle({ enemy, stageId }) {
 function onBattleEnd() {
   battleEnemy.value = null
   battleStageId.value = null
-  activeTab.value = 'home'
+  activeTab.value = 'stage'
 }
 </script>
