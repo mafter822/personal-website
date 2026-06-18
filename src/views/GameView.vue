@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-bg">
+    <Toast :message="toastMessage" :type="toastType" />
     <div class="max-w-6xl mx-auto px-4 py-6">
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold heading-italic">🐧 企鹅大乱斗</h1>
@@ -48,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, provide } from 'vue'
 import { gameStore } from '../game/store.js'
 import GameHome from '../components/game/GameHome.vue'
 import StageSelect from '../components/game/StageSelect.vue'
@@ -65,6 +66,7 @@ import RankingPanel from '../components/game/RankingPanel.vue'
 import RealmPanel from '../components/game/RealmPanel.vue'
 import AchievementPanel from '../components/game/AchievementPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
+import Toast from '../components/game/Toast.vue'
 
 const { state } = gameStore
 
@@ -72,6 +74,18 @@ const activeTab = ref('home')
 const previousTab = ref('stage')
 const battleEnemy = ref(null)
 const battleStageId = ref(null)
+const toastMessage = ref('')
+const toastType = ref('info')
+
+function showToast(message, type = 'info') {
+  toastMessage.value = ''
+  setTimeout(() => {
+    toastMessage.value = message
+    toastType.value = type
+  }, 50)
+}
+
+provide('showToast', showToast)
 
 const allTabs = [
   { id: 'home', icon: '🏠', label: '地盘' },

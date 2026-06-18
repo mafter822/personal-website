@@ -42,6 +42,16 @@ export class BattleEngine {
     let spd = this.player.speed
     let hp = this.player.maxHealth
 
+    // Apply class bonuses
+    if (this.player.classId) {
+      const classBonus = this.getClassBonus()
+      str += classBonus.strength || 0
+      agi += classBonus.agility || 0
+      spd += classBonus.speed || 0
+      hp += classBonus.maxHealth || 0
+    }
+
+    // Apply skill stat bonuses
     this.player.skills.forEach(owned => {
       const skill = getSkillById(owned.id)
       if (skill && skill.statBonus) {
@@ -54,12 +64,44 @@ export class BattleEngine {
       }
     })
 
+    // Apply buffs
     const hasteBuff = this.player.buffs.find(b => b.type === 'haste')
     if (hasteBuff) {
       spd = Math.floor(spd * (1 + hasteBuff.speedBonus))
     }
 
+    // Apply realm bonuses
+    if (this.player.realmBonus) {
+      str += this.player.realmBonus.strength || 0
+      agi += this.player.realmBonus.agility || 0
+      spd += this.player.realmBonus.speed || 0
+      hp += this.player.realmBonus.maxHealth || 0
+    }
+
     return { strength: str, agility: agi, speed: spd, maxHealth: hp }
+  }
+
+  getClassBonus() {
+    try {
+      const { CLASSES } = require('./data/classes.js')
+      const cls = CLASSES.find(c => c.id === this.player.classId)
+      if (!cls) return {}
+      const classSkills = this.player.classSkills?.[this.player.classId]?.allocated || {}
+      const bonus = { ...cls.statBonus }
+      cls.skillTree.forEach(skill => {
+        const level = classSkills[skill.id] || 0
+        if (level > 0) {
+          if (skill.effect === 'maxHealth') bonus.maxHealth = (bonus.maxHealth || 0) + skill.value * level
+          if (skill.effect === 'speed') bonus.speed = (bonus.speed || 0) + skill.value * level
+          if (skill.effect === 'allStats') {
+            bonus.strength = (bonus.strength || 0) + skill.value * level
+            bonus.agility = (bonus.agility || 0) + skill.value * level
+            bonus.speed = (bonus.speed || 0) + skill.value * level
+          }
+        }
+      })
+      return bonus
+    } catch { return {} }
   }
 
   get playerDamageReduction() {

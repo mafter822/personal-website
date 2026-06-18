@@ -92,7 +92,10 @@ function breakthrough() {
   if (!state.realm) state.realm = { level: 0 }
   state.realm.level++
   
-  alert(`突破成功！达到 ${nextRealm.value.name} 境界！`)
+  const realm = nextRealm.value
+  state.player.realmBonus = { ...realm.bonus }
+  
+  alert(`突破成功！达到 ${realm.name} 境界！全属性+${realm.bonus.strength}`)
 }
 
 function statName(stat) {

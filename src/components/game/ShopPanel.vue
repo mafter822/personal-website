@@ -103,7 +103,12 @@ function applyEffect(effect) {
       state.player.spirit += effect.amount
       break
     case 'heal':
-      state.player.health = Math.min(state.player.maxHealth, Math.floor(state.player.maxHealth * effect.percent))
+      const maxHp = 100 + (state.player.level - 1) * 15
+      state.player.health = Math.min(maxHp, Math.floor(maxHp * effect.percent))
+      break
+    case 'buff':
+      if (!state.buffs) state.buffs = []
+      state.buffs.push({ type: effect.stat, amount: effect.amount, duration: effect.duration })
       break
     case 'material':
       if (!state.inventory[effect.item]) state.inventory[effect.item] = 0

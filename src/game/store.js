@@ -2,6 +2,7 @@ import { ref, reactive, watch } from 'vue'
 import { SAVE_KEY, GAME_VERSION } from './data/constants.js'
 import { rollSkill, getSkillById } from './data/skills.js'
 import { rollWeapon, getWeaponById } from './data/weapons.js'
+import { ACHIEVEMENTS } from './data/achievements.js'
 
 function getDefaultState() {
   return {
@@ -289,16 +290,57 @@ function clearStage(stageId) {
 function addWin() {
   gameState.stats.wins++
   gameState.stats.streak++
+  gameState.stats.totalBattles = (gameState.stats.totalBattles || 0) + 1
   if (gameState.stats.streak > gameState.stats.maxStreak) {
     gameState.stats.maxStreak = gameState.stats.streak
   }
+  checkAndUnlockAchievements()
   scheduleAutoSave()
 }
 
 function addLoss() {
   gameState.stats.losses++
   gameState.stats.streak = 0
+  gameState.stats.totalBattles = (gameState.stats.totalBattles || 0) + 1
+  checkAndUnlockAchievements()
   scheduleAutoSave()
+}
+
+function checkAndUnlockAchievements() {
+  if (!gameState.achievements) gameState.achievements = []
+  
+  const stats = {
+    wins: gameState.stats.wins,
+    losses: gameState.stats.losses,
+    streak: gameState.stats.streak,
+    maxStreak: gameState.stats.maxStreak,
+    level: gameState.player.level,
+    weapons: gameState.weapons.length,
+    skills: gameState.skills.length,
+    tower: gameState.towerProgress?.maxFloor || 0,
+    totalBattles: gameState.stats.totalBattles || 0,
+  }
+  
+  ACHIEVEMENTS.forEach(ach => {
+    if (gameState.achievements.includes(ach.id)) return
+    
+    let value = 0
+    switch (ach.condition.type) {
+      case 'wins': value = stats.wins; break
+      case 'streak': value = stats.maxStreak; break
+      case 'level': value = stats.level; break
+      case 'weapons': value = stats.weapons; break
+      case 'skills': value = stats.skills; break
+      case 'tower': value = stats.tower; break
+      case 'totalBattles': value = stats.totalBattles; break
+    }
+    
+    if (value >= ach.condition.value) {
+      gameState.achievements.push(ach.id)
+      if (ach.reward.exp) gameState.player.exp += ach.reward.exp
+      if (ach.reward.spirit) gameState.player.spirit += ach.reward.spirit
+    }
+  })
 }
 
 function getCombatStats() {

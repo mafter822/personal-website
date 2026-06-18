@@ -7,7 +7,7 @@
     <div class="card p-4 mb-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-sm font-medium">⚡ 体力: {{ playerStamina }}/100</div>
+          <div class="text-sm font-medium">⚡ 体力: {{ playerStamina }}/{{ playerMaxStamina }}</div>
           <div class="text-xs text-text-muted mt-1">每分钟自动恢复1点，升级恢复20点，休息恢复30点</div>
         </div>
         <button
@@ -107,6 +107,7 @@ const insufficientStage = ref(null)
 const stages = STAGES
 const playerLevel = computed(() => state.player.level || 1)
 const playerStamina = computed(() => state.player.stamina || 0)
+const playerMaxStamina = computed(() => 100 + (playerLevel.value - 1) * 5)
 
 function cleared(id) {
   return state.stagesCleared.includes(id)
