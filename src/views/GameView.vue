@@ -38,7 +38,6 @@
         <RealmPanel v-else-if="activeTab === 'realm'" />
         <SkillBook v-else-if="activeTab === 'skills'" />
         <WeaponBook v-else-if="activeTab === 'weapons'" />
-        <EquipmentPanel v-else-if="activeTab === 'equipment'" />
         <TowerScene v-else-if="activeTab === 'tower'" @start-battle="startBattle" />
         <ShopPanel v-else-if="activeTab === 'shop'" />
         <AchievementPanel v-else-if="activeTab === 'achievements'" />
@@ -59,7 +58,6 @@ import WeaponBook from '../components/game/WeaponBook.vue'
 import Inventory from '../components/game/Inventory.vue'
 import TowerScene from '../components/game/TowerScene.vue'
 import ShopPanel from '../components/game/ShopPanel.vue'
-import EquipmentPanel from '../components/game/EquipmentPanel.vue'
 import ClassTree from '../components/game/ClassTree.vue'
 import FriendList from '../components/game/FriendList.vue'
 import RankingPanel from '../components/game/RankingPanel.vue'
@@ -97,7 +95,6 @@ const allTabs = [
   { id: 'class', icon: '⚔️', label: '职业' },
   { id: 'skills', icon: '✨', label: '技能' },
   { id: 'weapons', icon: '🗡️', label: '武器' },
-  { id: 'equipment', icon: '🛡️', label: '装备' },
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
   { id: 'menu', icon: '⚙️', label: '设置' },

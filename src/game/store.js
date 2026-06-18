@@ -2,7 +2,6 @@ import { ref, reactive, watch } from 'vue'
 import { SAVE_KEY, GAME_VERSION } from './data/constants.js'
 import { rollSkill, getSkillById } from './data/skills.js'
 import { rollWeapon, getWeaponById } from './data/weapons.js'
-import { getEquipmentById } from './data/equipment.js'
 import { ACHIEVEMENTS } from './data/achievements.js'
 
 function getDefaultState() {
@@ -36,7 +35,6 @@ function getDefaultState() {
         class: true,
         skills: true,
         weapons: true,
-        equipment: false,
         shop: true,
         achievements: true,
         menu: true,
@@ -44,9 +42,7 @@ function getDefaultState() {
     },
     skills: [],
     weapons: [],
-    equipment: [],
     equippedWeapon: null,
-    equippedEquipment: {},
     inventory: [],
     stagesCleared: [],
     towerProgress: { maxFloor: 0, dailyUsed: 0, lastResetDate: null },
@@ -89,9 +85,7 @@ function loadGame() {
     if (data.stats) Object.assign(gameState.stats, data.stats)
     if (data.skills) gameState.skills = data.skills
     if (data.weapons) gameState.weapons = data.weapons
-    if (data.equipment) gameState.equipment = data.equipment
     if (data.equippedWeapon) gameState.equippedWeapon = data.equippedWeapon
-    if (data.equippedEquipment) gameState.equippedEquipment = data.equippedEquipment
     if (data.stagesCleared) gameState.stagesCleared = data.stagesCleared
 
     migrateEquipmentFromWeapons()
@@ -101,34 +95,16 @@ function loadGame() {
 }
 
 function migrateEquipmentFromWeapons() {
-  const equipmentItems = []
-  const weaponsOnly = []
+  const weaponsOnly = gameState.weapons.filter(item => !item.id?.startsWith('eq_'))
 
-  gameState.weapons.forEach(item => {
-    if (item.id && item.id.startsWith('eq_')) {
-      equipmentItems.push(item)
-    } else {
-      weaponsOnly.push(item)
-    }
-  })
-
-  if (equipmentItems.length > 0) {
+  if (weaponsOnly.length < gameState.weapons.length) {
     gameState.weapons = weaponsOnly
-    equipmentItems.forEach(item => {
-      if (!gameState.equipment.find(e => e.id === item.id)) {
-        gameState.equipment.push(item)
-      }
-    })
-    if (gameState.equippedWeapon && gameState.equippedWeapon.startsWith('eq_')) {
-      gameState.equippedWeapon = null
+    if (!gameState.equippedWeapon && weaponsOnly.length > 0) {
+      gameState.equippedWeapon = weaponsOnly[0].id
     }
-  }
-
-  if (!gameState.equippedWeapon && weaponsOnly.length > 0) {
+    scheduleAutoSave()
+  } else if (!gameState.equippedWeapon && weaponsOnly.length > 0) {
     gameState.equippedWeapon = weaponsOnly[0].id
-  }
-
-  if (equipmentItems.length > 0 || (!gameState.equippedWeapon && weaponsOnly.length > 0)) {
     scheduleAutoSave()
   }
 }
@@ -140,9 +116,7 @@ function resetGame() {
   Object.assign(gameState.stats, fresh.stats)
   gameState.skills = []
   gameState.weapons = []
-  gameState.equipment = []
   gameState.equippedWeapon = null
-  gameState.equippedEquipment = {}
   gameState.stagesCleared = []
   gameState.towerProgress = { maxFloor: 0, dailyUsed: 0, lastResetDate: null }
 }
@@ -309,45 +283,6 @@ function enhanceWeapon(weaponId, cost) {
   return true
 }
 
-function addEquipment(item) {
-  if (!gameState.equipment) gameState.equipment = []
-  const existing = gameState.equipment.find(e => e.id === item.id)
-  if (existing) {
-    existing.count = (existing.count || 1) + 1
-  } else {
-    gameState.equipment.push({ ...item, count: 1 })
-  }
-  scheduleAutoSave()
-}
-
-function equipEquipment(slot, itemId) {
-  if (!gameState.equippedEquipment) gameState.equippedEquipment = {}
-  gameState.equippedEquipment[slot] = itemId
-  scheduleAutoSave()
-}
-
-function unequipEquipment(slot) {
-  if (gameState.equippedEquipment) {
-    gameState.equippedEquipment[slot] = null
-  }
-  scheduleAutoSave()
-}
-
-function getEquipmentStats() {
-  const bonus = { strength: 0, agility: 0, speed: 0, maxHealth: 0 }
-  if (!gameState.equippedEquipment) return bonus
-  Object.values(gameState.equippedEquipment).forEach(id => {
-    if (!id) return
-    const eq = getEquipmentById(id)
-    if (eq && eq.stats) {
-      Object.entries(eq.stats).forEach(([stat, val]) => {
-        if (bonus[stat] !== undefined) bonus[stat] += val
-      })
-    }
-  })
-  return bonus
-}
-
 function learnSkill(skill) {
   if (!gameState.skills.find(s => s.id === skill.id)) {
     gameState.skills.push({ ...skill, level: 1 })
@@ -469,13 +404,11 @@ function getCombatStats() {
     }
   })
 
-  const eqBonus = getEquipmentStats()
-
   return {
-    strength: player.strength + bonusStr + eqBonus.strength,
-    agility: player.agility + bonusAgi + eqBonus.agility,
-    speed: player.speed + bonusSpd + eqBonus.speed,
-    maxHealth: player.maxHealth + bonusHp + eqBonus.maxHealth,
+    strength: player.strength + bonusStr,
+    agility: player.agility + bonusAgi,
+    speed: player.speed + bonusSpd,
+    maxHealth: player.maxHealth + bonusHp,
   }
 }
 
@@ -500,10 +433,6 @@ export const gameStore = {
   equipWeapon,
   getEquippedWeapon,
   enhanceWeapon,
-  addEquipment,
-  equipEquipment,
-  unequipEquipment,
-  getEquipmentStats,
   learnSkill,
   upgradeSkill,
   clearStage,

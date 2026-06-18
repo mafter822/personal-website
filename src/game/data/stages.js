@@ -1,18 +1,4 @@
 import { NPC_ENEMIES } from './pets.js'
-import { EQUIPMENT_DATABASE } from './equipment.js'
-
-function getStageEquipmentDrop(difficulty) {
-  const possibleEquipment = EQUIPMENT_DATABASE.filter(e => {
-    if (difficulty <= 3 && e.reqLevel > 10) return false
-    if (difficulty <= 6 && e.reqLevel > 25) return false
-    return true
-  })
-  
-  if (possibleEquipment.length === 0) return null
-  if (Math.random() > 0.3) return null
-  
-  return possibleEquipment[Math.floor(Math.random() * possibleEquipment.length)]
-}
 
 export const STAGES = [
   {

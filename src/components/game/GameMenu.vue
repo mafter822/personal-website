@@ -68,7 +68,6 @@ const allTabs = [
   { id: 'class', icon: '⚔️', label: '职业' },
   { id: 'skills', icon: '✨', label: '技能' },
   { id: 'weapons', icon: '🗡️', label: '武器' },
-  { id: 'equipment', icon: '🛡️', label: '装备' },
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
 ]

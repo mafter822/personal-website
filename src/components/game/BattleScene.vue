@@ -126,18 +126,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Dropped Equipment -->
-        <div v-if="droppedEquipment.length > 0" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-          <h4 class="font-semibold mb-2 text-amber-500">🛡️ 掉落装备</h4>
-          <div class="space-y-2">
-            <div v-for="equip in droppedEquipment" :key="equip.id" class="flex items-center gap-2 text-sm">
-              <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: getEquipColor(equip.quality) }"></span>
-              <span class="font-medium" :style="{ color: getEquipColor(equip.quality) }">{{ equip.name }}</span>
-              <span class="text-text-secondary">- {{ slotName(equip.slot) }}</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="mt-6 text-center">
@@ -161,7 +149,6 @@ import { gameStore } from '../../game/store.js'
 import { BattleEngine } from '../../game/engine.js'
 import { WEAPON_QUALITY } from '../../game/data/weapons.js'
 import { getSkillById as getSkillData } from '../../game/data/skills.js'
-import { EQUIPMENT_DATABASE } from '../../game/data/equipment.js'
 
 const props = defineProps({
   enemy: Object,
@@ -171,7 +158,7 @@ const props = defineProps({
 
 const emit = defineEmits(['battle-end'])
 
-const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss, getBattleSpeed, setBattleSpeed, increaseFriendIntimacy, addEquipment } = gameStore
+const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss, getBattleSpeed, setBattleSpeed, increaseFriendIntimacy } = gameStore
 
 const log = ref([])
 const currentHp = ref(0)
@@ -192,7 +179,6 @@ const oldLevel = ref(0)
 const levelUpStats = ref({ strength: 0, agility: 0, speed: 0, health: 0 })
 const newSkills = ref([])
 const newWeapons = ref([])
-const droppedEquipment = ref([])
 
 function updateSpeed(s) {
   battleSpeed.value = s
@@ -204,23 +190,6 @@ const enemyHpPercent = computed(() => enemyMaxHp.value > 0 ? (enemyHp.value / en
 
 function getWeaponColor(quality) {
   return WEAPON_QUALITY[quality]?.color || '#9ca3af'
-}
-
-function getEquipColor(quality) {
-  const map = {
-    common: '#9ca3af',
-    rare: '#3b82f6',
-    epic: '#a855f7',
-    legendary: '#f97316',
-    mythic: '#ec4899',
-    divine: '#eab308',
-  }
-  return map[quality] || '#9ca3af'
-}
-
-function slotName(slot) {
-  const map = { weapon: '武器', helmet: '头盔', armor: '铠甲', boots: '靴子', accessory: '饰品' }
-  return map[slot] || slot
 }
 
 function logColor(type) {
@@ -369,18 +338,6 @@ async function startAutoBattle() {
 
     if (state.weapons.length > oldWeaponCount) {
       newWeapons.value = state.weapons.slice(oldWeaponCount)
-    }
-
-    const dropChance = 0.2 + (props.enemy.level * 0.005)
-    if (Math.random() < dropChance) {
-      const possibleEquipment = EQUIPMENT_DATABASE.filter(e => e.reqLevel <= state.player.level)
-      if (possibleEquipment.length > 0) {
-        const dropped = possibleEquipment[Math.floor(Math.random() * possibleEquipment.length)]
-        if (!state.equipment?.find(e => e.id === dropped.id)) {
-          addEquipment(dropped)
-          droppedEquipment.value.push(dropped)
-        }
-      }
     }
   } else {
     won.value = false
