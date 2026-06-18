@@ -48,7 +48,6 @@
           </div>
         </div>
 
-        <!-- Difficulty Stars -->
         <div class="flex gap-1 mt-2">
           <span
             v-for="i in 10"
@@ -58,44 +57,6 @@
           >★</span>
         </div>
       </div>
-    </div>
-
-    <!-- Enemy Preview -->
-    <div v-if="selectedStage" class="card p-4 mt-6">
-      <h4 class="font-medium mb-3">敌人信息</h4>
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span class="text-text-secondary">名称:</span>
-          <span class="ml-2 font-medium">{{ selectedStage.enemy.name }}</span>
-        </div>
-        <div>
-          <span class="text-text-secondary">等级:</span>
-          <span class="ml-2">Lv.{{ selectedStage.enemy.level }}</span>
-        </div>
-        <div>
-          <span class="text-text-secondary">生命:</span>
-          <span class="ml-2">❤️ {{ selectedStage.enemy.health }}</span>
-        </div>
-        <div>
-          <span class="text-text-secondary">攻击:</span>
-          <span class="ml-2">⚔️ {{ selectedStage.enemy.strength }}</span>
-        </div>
-        <div>
-          <span class="text-text-secondary">敏捷:</span>
-          <span class="ml-2">🌀 {{ selectedStage.enemy.agility }}</span>
-        </div>
-        <div>
-          <span class="text-text-secondary">速度:</span>
-          <span class="ml-2">⚡ {{ selectedStage.enemy.speed }}</span>
-        </div>
-      </div>
-      <button
-        @click="confirmBattle"
-        class="btn-primary w-full mt-4"
-        :disabled="!canChallenge(selectedStage)"
-      >
-        {{ canChallenge(selectedStage) ? '开始挑战' : getCannotReason(selectedStage) }}
-      </button>
     </div>
 
     <!-- Insufficient Stamina Modal -->
@@ -139,7 +100,6 @@ import { STAGES } from '../../game/data/stages.js'
 const emit = defineEmits(['start-battle'])
 const { state, consumeStamina, restRecover, recoverStaminaByTime } = gameStore
 
-const selectedStage = ref(null)
 const showStaminaModal = ref(false)
 const showLevelModal = ref(false)
 const insufficientStage = ref(null)
@@ -158,12 +118,6 @@ function isAvailable(stage) {
 
 function canChallenge(stage) {
   return isAvailable(stage) && playerStamina.value >= stage.staminaCost
-}
-
-function getCannotReason(stage) {
-  if (!isAvailable(stage)) return `需要 Lv.${stage.requiredLevel}+`
-  if (playerStamina.value < stage.staminaCost) return '体力不足'
-  return '无法挑战'
 }
 
 function stageEmoji(difficulty) {
@@ -186,13 +140,8 @@ function handleStageClick(stage) {
     return
   }
   
-  selectedStage.value = { ...stage }
-}
-
-function confirmBattle() {
-  if (!selectedStage.value || !canChallenge(selectedStage.value)) return
-  consumeStamina(selectedStage.value.staminaCost)
-  emit('start-battle', { enemy: selectedStage.value.enemy, stageId: selectedStage.value.id })
+  consumeStamina(stage.staminaCost)
+  emit('start-battle', { enemy: stage.enemy, stageId: stage.id })
 }
 
 function handleRest() {
