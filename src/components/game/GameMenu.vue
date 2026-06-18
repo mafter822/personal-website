@@ -2,6 +2,27 @@
   <div class="card p-4">
     <h3 class="font-semibold mb-4">⚙️ 游戏设置</h3>
 
+    <!-- Tab Visibility -->
+    <div class="mb-6">
+      <h4 class="text-sm font-medium mb-3">界面显示设置</h4>
+      <p class="text-xs text-text-muted mb-3">控制主界面显示哪些Tab</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <label
+          v-for="tab in allTabs"
+          :key="tab.id"
+          class="flex items-center gap-2 p-2 rounded-lg bg-bg-card cursor-pointer hover:bg-bg-card-hover transition-colors"
+        >
+          <input
+            type="checkbox"
+            v-model="state.settings.visibleTabs[tab.id]"
+            class="w-4 h-4 accent-primary"
+          />
+          <span class="text-sm">{{ tab.icon }} {{ tab.label }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Other Settings -->
     <div class="space-y-3">
       <button
         @click="handleReset"
@@ -24,7 +45,7 @@
     </div>
 
     <div class="mt-4 pt-4 border-t border-border text-xs text-text-muted">
-      <p>游戏版本: v1.0.0</p>
+      <p>游戏版本: v2.0.0</p>
       <p>存档自动保存到浏览器本地存储</p>
     </div>
   </div>
@@ -33,7 +54,22 @@
 <script setup>
 import { gameStore } from '../../game/store.js'
 
-const { resetGame, state } = gameStore
+const { state, resetGame } = gameStore
+
+const allTabs = [
+  { id: 'home', icon: '🏠', label: '地盘' },
+  { id: 'stage', icon: '⚔️', label: '乐斗' },
+  { id: 'tower', icon: '🗼', label: '斗神塔' },
+  { id: 'friends', icon: '👥', label: '好友' },
+  { id: 'ranking', icon: '🏆', label: '排行' },
+  { id: 'realm', icon: '🔮', label: '境界' },
+  { id: 'class', icon: '⚔️', label: '职业' },
+  { id: 'skills', icon: '✨', label: '技能' },
+  { id: 'weapons', icon: '🗡️', label: '武器' },
+  { id: 'equipment', icon: '🛡️', label: '装备' },
+  { id: 'shop', icon: '🛒', label: '商城' },
+  { id: 'achievements', icon: '🏅', label: '成就' },
+]
 
 function handleReset() {
   if (confirm('确定要清除所有游戏存档吗？此操作不可恢复！')) {

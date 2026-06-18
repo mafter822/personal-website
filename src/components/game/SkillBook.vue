@@ -1,12 +1,12 @@
 <template>
   <div>
     <!-- Category Filter -->
-    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+    <div class="flex flex-wrap gap-2 mb-4">
       <button
         v-for="(label, key) in categories"
         :key="key"
         @click="activeCategory = key"
-        class="px-3 py-1.5 rounded-full text-sm transition-all whitespace-nowrap"
+        class="px-3 py-1.5 rounded-full text-sm transition-all"
         :class="activeCategory === key
           ? 'bg-black text-white'
           : 'bg-bg-card text-text-secondary hover:text-primary'"
@@ -39,10 +39,10 @@
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <span v-if="ownedSkill" class="text-xs text-green-600">✓</span>
+            <span v-if="getOwnedSkill(skill.id)" class="text-xs text-green-600">✓</span>
             <span class="text-xs px-2 py-0.5 rounded font-medium"
-              :class="ownedSkill && ownedSkill.level > 0 ? 'bg-accent text-white' : 'bg-primary/10 text-primary'">
-              Lv.{{ ownedSkill ? ownedSkill.level : 0 }}/{{ skill.maxLevel }}
+              :class="getOwnedSkill(skill.id) && getOwnedSkill(skill.id).level > 0 ? 'bg-accent text-white' : 'bg-primary/10 text-primary'">
+              Lv.{{ getOwnedSkill(skill.id) ? getOwnedSkill(skill.id).level : 0 }}/{{ skill.maxLevel }}
             </span>
           </div>
         </div>
@@ -51,7 +51,7 @@
         <div class="h-2 bg-bg-card rounded-full overflow-hidden mb-3">
           <div
             class="h-full bg-primary rounded-full transition-all"
-            :style="{ width: ((ownedSkill ? ownedSkill.level : 0) / skill.maxLevel * 100) + '%' }"
+            :style="{ width: ((getOwnedSkill(skill.id) ? getOwnedSkill(skill.id).level : 0) / skill.maxLevel * 100) + '%' }"
           ></div>
         </div>
 
@@ -69,15 +69,15 @@
         </div>
 
         <!-- Upgrade Button -->
-        <div class="mt-3" v-if="ownedSkill">
+        <div class="mt-3" v-if="getOwnedSkill(skill.id)">
           <button
-            v-if="ownedSkill.level < skill.maxLevel && state.player.spirit >= upgradeCost(skill)"
+            v-if="getOwnedSkill(skill.id).level < skill.maxLevel && state.player.spirit >= upgradeCost(skill)"
             @click="handleUpgrade(skill)"
             class="w-full px-3 py-1.5 text-xs rounded bg-primary text-white hover:bg-primary-dark transition-colors"
           >
-            升级至 Lv.{{ ownedSkill.level + 1 }} (💎{{ upgradeCost(skill) }})
+            升级至 Lv.{{ getOwnedSkill(skill.id).level + 1 }} (💎{{ upgradeCost(skill) }})
           </button>
-          <span v-else-if="ownedSkill.level >= skill.maxLevel" class="text-xs text-green-600">已满级</span>
+          <span v-else-if="getOwnedSkill(skill.id).level >= skill.maxLevel" class="text-xs text-green-600">已满级</span>
           <span v-else class="text-xs text-text-muted">精魄不足</span>
         </div>
       </div>
@@ -88,7 +88,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
-import { SKILLS, getSkillsByCategory, getLevelRange, LEVEL_RANGES } from '../../game/data/skills.js'
+import { SKILLS, getSkillsByCategory } from '../../game/data/skills.js'
 
 const { state, upgradeSkill, learnSkill } = gameStore
 
@@ -108,8 +108,6 @@ const filteredSkills = computed(() => getSkillsByCategory(activeCategory.value))
 function getOwnedSkill(skillId) {
   return state.skills.find(s => s.id === skillId)
 }
-
-const ownedSkill = computed(() => null)
 
 function isUnlocked(skill) {
   return state.player.level >= skill.unlockLevel

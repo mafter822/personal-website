@@ -24,6 +24,21 @@ function getDefaultState() {
       autoSave: true,
       battleSpeed: 2,
       lastStaminaRecover: Date.now(),
+      visibleTabs: {
+        home: true,
+        stage: true,
+        tower: true,
+        friends: true,
+        ranking: true,
+        realm: true,
+        class: true,
+        skills: true,
+        weapons: true,
+        equipment: false,
+        shop: true,
+        achievements: true,
+        menu: true,
+      },
     },
     skills: [],
     weapons: [],
@@ -107,7 +122,6 @@ function addExp(amount) {
 
   while (gameState.player.exp >= getExpForLevel(gameState.player.level) && gameState.player.level < 50) {
     gameState.player.exp -= getExpForLevel(gameState.player.level)
-    const oldLevel = gameState.player.level
     gameState.player.level++
     gameState.player.strength += 3
     gameState.player.agility += 2
@@ -124,18 +138,23 @@ function addExp(amount) {
       randomBonus,
     })
 
-    const ownedSkillIds = gameState.skills.map(s => s.id)
-    const newSkill = rollSkill(gameState.player.level, ownedSkillIds)
-    if (newSkill) {
-      gameState.skills.push({ id: newSkill.id, level: 1 })
-      newSkills.push(newSkill)
-    }
-
-    const ownedWeaponIds = gameState.weapons.map(w => w.id)
-    const newWeapon = rollWeapon(gameState.player.level, ownedWeaponIds)
-    if (newWeapon) {
-      gameState.weapons.push({ ...newWeapon, enhanceLevel: 0 })
-      newWeapons.push(newWeapon)
+    if (gameState.player.level % 2 === 0) {
+      const roll = Math.random()
+      if (roll < 0.5) {
+        const ownedSkillIds = gameState.skills.map(s => s.id)
+        const newSkill = rollSkill(gameState.player.level, ownedSkillIds)
+        if (newSkill) {
+          gameState.skills.push({ id: newSkill.id, level: 1 })
+          newSkills.push(newSkill)
+        }
+      } else {
+        const ownedWeaponIds = gameState.weapons.map(w => w.id)
+        const newWeapon = rollWeapon(gameState.player.level, ownedWeaponIds)
+        if (newWeapon) {
+          gameState.weapons.push({ ...newWeapon, enhanceLevel: 0 })
+          newWeapons.push(newWeapon)
+        }
+      }
     }
   }
   scheduleAutoSave()

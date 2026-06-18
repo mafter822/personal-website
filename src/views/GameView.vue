@@ -8,7 +8,7 @@
         </router-link>
       </div>
 
-      <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+      <div class="flex flex-wrap gap-2 mb-6">
         <button
           v-for="tab in tabs"
           :key="tab.id"
@@ -48,7 +48,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { gameStore } from '../game/store.js'
 import GameHome from '../components/game/GameHome.vue'
 import StageSelect from '../components/game/StageSelect.vue'
 import BattleScene from '../components/game/BattleScene.vue'
@@ -65,12 +66,14 @@ import RealmPanel from '../components/game/RealmPanel.vue'
 import AchievementPanel from '../components/game/AchievementPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
+const { state } = gameStore
+
 const activeTab = ref('home')
 const previousTab = ref('stage')
 const battleEnemy = ref(null)
 const battleStageId = ref(null)
 
-const tabs = [
+const allTabs = [
   { id: 'home', icon: '🏠', label: '地盘' },
   { id: 'stage', icon: '⚔️', label: '乐斗' },
   { id: 'tower', icon: '🗼', label: '斗神塔' },
@@ -85,6 +88,11 @@ const tabs = [
   { id: 'achievements', icon: '🏅', label: '成就' },
   { id: 'menu', icon: '⚙️', label: '设置' },
 ]
+
+const tabs = computed(() => {
+  const visible = state.settings?.visibleTabs || {}
+  return allTabs.filter(tab => visible[tab.id] !== false)
+})
 
 function startBattle({ enemy, stageId, fromTab }) {
   previousTab.value = fromTab || 'stage'

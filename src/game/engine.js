@@ -17,6 +17,7 @@ export class BattleEngine {
       ignoreTurns: 0,
       weaponDisarmed: false,
       restTurns: 0,
+      usedActiveSkills: new Set(),
     }
     this.enemy = {
       ...enemy,
@@ -83,33 +84,40 @@ export class BattleEngine {
     const hpPercent = this.player.health / this.playerCombatStats.maxHealth
     const enemyHpPercent = this.enemy.health / this.enemy.maxHealth
 
-    const attackSkills = this.player.skills
+    const availableSkills = this.player.skills
       .map(s => getSkillById(s.id))
-      .filter(s => s && (s.category === 'attack' || s.category === 'control' || s.category === 'special'))
+      .filter(s => {
+        if (!s) return false
+        if (s.category !== 'attack' && s.category !== 'control' && s.category !== 'special') return false
+        if (s.effect === 'stun' && this.player.usedActiveSkills.has('stun')) return false
+        if (s.effect === 'disarm' && this.player.usedActiveSkills.has('disarm')) return false
+        if (s.effect === 'ignore' && this.player.usedActiveSkills.has('ignore')) return false
+        return true
+      })
 
-    if (attackSkills.length === 0) return null
+    if (availableSkills.length === 0) return null
 
     if (hpPercent < 0.3) {
-      const healSkill = attackSkills.find(s => s.effect === 'heal')
+      const healSkill = availableSkills.find(s => s.effect === 'heal')
       if (healSkill) return healSkill.id
     }
 
     if (enemyHpPercent < 0.2) {
-      const controlSkill = attackSkills.find(s => s.effect === 'stun' || s.effect === 'disarm')
+      const controlSkill = availableSkills.find(s => s.effect === 'stun' || s.effect === 'disarm')
       if (controlSkill) return controlSkill.id
     }
 
-    const highDamageSkills = attackSkills.filter(s => s.damageMul && s.damageMul >= 1.5)
+    const highDamageSkills = availableSkills.filter(s => s.damageMul && s.damageMul >= 1.5)
     if (highDamageSkills.length > 0 && Math.random() < 0.6) {
       return highDamageSkills[Math.floor(Math.random() * highDamageSkills.length)].id
     }
 
     if (Math.random() < 0.3) {
-      const controlSkill = attackSkills.find(s => s.effect === 'control' || s.effect === 'stun')
+      const controlSkill = availableSkills.find(s => s.effect === 'control' || s.effect === 'stun')
       if (controlSkill) return controlSkill.id
     }
 
-    return attackSkills[Math.floor(Math.random() * attackSkills.length)].id
+    return availableSkills[Math.floor(Math.random() * availableSkills.length)].id
   }
 
   startNextTurn() {
@@ -171,14 +179,19 @@ export class BattleEngine {
 
     if (skill && skill.effect === 'heal') {
       this.executeHealSkill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else if (skill && skill.effect === 'disarm') {
       this.executeDisarmSkill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else if (skill && skill.effect === 'stun') {
       this.executeStunSkill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else if (skill && skill.effect === 'ignore') {
       this.executeIgnoreSkill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else if (skill && skill.effect === 'haste') {
       this.executeHasteSkill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else {
       this.executeAttack(skill)
     }
