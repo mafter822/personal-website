@@ -78,6 +78,13 @@ export class BattleEngine {
       hp += this.player.realmBonus.maxHealth || 0
     }
 
+    // Apply streak status
+    if (this.player.streakStatus === 'excited') {
+      str = Math.floor(str * 1.3)
+    } else if (this.player.streakStatus === 'depressed') {
+      str = Math.floor(str * 0.8)
+    }
+
     return { strength: str, agility: agi, speed: spd, maxHealth: hp }
   }
 
@@ -353,6 +360,34 @@ export class BattleEngine {
     this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`)
   }
 
+  chooseEnemySkill() {
+    try {
+      const { NPC_SKILLS } = require('./data/pets.js')
+      if (!this.enemy.skills || this.enemy.skills.length === 0) return null
+      
+      const weightedSkills = []
+      this.enemy.skills.forEach(skillId => {
+        const skill = NPC_SKILLS[skillId]
+        if (skill) {
+          const weight = skill.damageMul > 2 ? 15 : skill.damageMul > 1.5 ? 25 : 40
+          weightedSkills.push({ skill, weight })
+        }
+      })
+
+      if (weightedSkills.length === 0) return null
+
+      const totalWeight = weightedSkills.reduce((sum, s) => sum + s.weight, 0)
+      let roll = Math.random() * totalWeight
+
+      for (const { skill, weight } of weightedSkills) {
+        roll -= weight
+        if (roll <= 0) return skill
+      }
+
+      return weightedSkills[weightedSkills.length - 1].skill
+    } catch { return null }
+  }
+
   enemyTurn() {
     if (this.isOver) return
 
@@ -367,20 +402,27 @@ export class BattleEngine {
 
     const stats = this.playerCombatStats
     const enemyStats = { strength: this.enemy.strength, agility: this.enemy.agility, speed: this.enemy.speed }
-    const enemyWeaponName = this.enemy.weapon ? this.enemy.weapon.name : '拳打脚踢'
 
+    const enemySkill = this.chooseEnemySkill()
     let damage = CALC.damage(enemyStats, null, null)
+    let skillName = '拳打脚踢'
+
+    if (enemySkill) {
+      const skillMul = enemySkill.damageMul || 1.0
+      damage = Math.floor(damage * skillMul)
+      skillName = enemySkill.name
+    }
 
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)
     if (Math.random() < dodgeChance) {
-      this.addLog('dodge', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name}闪开了！`)
+      this.addLog('dodge', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}闪开了！`)
       return
     }
 
     const blockChance = this.player.skills.some(s => getSkillById(s.id)?.blockChance) ? 0.3 : 0.15
     if (Math.random() < blockChance) {
       damage = Math.floor(damage * 0.5)
-      this.addLog('block', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name} 格挡了部分伤害！`)
+      this.addLog('block', `${this.enemy.name}用【${skillName}】攻击！${this.player.name} 格挡了部分伤害！`)
     }
 
     const defReduction = this.playerDamageReduction
@@ -400,7 +442,7 @@ export class BattleEngine {
     }
 
     this.player.health = Math.max(0, this.player.health - damage)
-    this.addLog('enemy_attack', `${this.enemy.name}用【${enemyWeaponName}】攻击！${this.player.name}损失 ${damage} 点生命！`)
+    this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}损失 ${damage} 点生命！`)
 
     if (this.player.health <= 0) {
       const deadSkill = this.player.skills.find(s => {

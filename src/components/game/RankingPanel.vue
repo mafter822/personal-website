@@ -112,11 +112,12 @@ const playerPower = computed(() => {
 })
 
 const allEntries = computed(() => {
-  const entries = NPC_FRIENDS.map(f => ({
+  const npcStreaks = [15, 12, 8, 10, 5, 3, 7, 2]
+  const entries = NPC_FRIENDS.map((f, i) => ({
     name: f.name,
     level: f.level,
     power: Math.floor(f.strength * 2 + f.agility * 1.5 + f.speed * 1.5 + f.health * 0.5),
-    streak: Math.floor(Math.random() * 20),
+    streak: npcStreaks[i] || 0,
     isPlayer: false,
   }))
 

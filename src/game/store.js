@@ -47,6 +47,7 @@ function getDefaultState() {
     inventory: [],
     stagesCleared: [],
     towerProgress: { maxFloor: 0, dailyUsed: 0, lastResetDate: null },
+    streakStatus: 'normal',
     stats: {
       wins: 0,
       losses: 0,
@@ -294,15 +295,42 @@ function addWin() {
   if (gameState.stats.streak > gameState.stats.maxStreak) {
     gameState.stats.maxStreak = gameState.stats.streak
   }
+  
+  if (gameState.stats.streak >= 3) {
+    gameState.player.streakStatus = 'excited'
+  } else {
+    gameState.player.streakStatus = 'normal'
+  }
+  
   checkAndUnlockAchievements()
   scheduleAutoSave()
 }
 
 function addLoss() {
   gameState.stats.losses++
-  gameState.stats.streak = 0
   gameState.stats.totalBattles = (gameState.stats.totalBattles || 0) + 1
+  
+  gameState.stats.consecutiveLosses = (gameState.stats.consecutiveLosses || 0) + 1
+  gameState.stats.streak = 0
+  
+  if (gameState.stats.consecutiveLosses >= 3) {
+    gameState.player.streakStatus = 'depressed'
+  } else {
+    gameState.player.streakStatus = 'normal'
+  }
+  
   checkAndUnlockAchievements()
+  scheduleAutoSave()
+}
+
+function increaseFriendIntimacy(friendId, amount = 5) {
+  if (!gameState.friends) gameState.friends = []
+  const friend = gameState.friends.find(f => f.id === friendId)
+  if (friend) {
+    friend.intimacy = Math.min(9999, (friend.intimacy || 0) + amount)
+  } else {
+    gameState.friends.push({ id: friendId, intimacy: amount })
+  }
   scheduleAutoSave()
 }
 

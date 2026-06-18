@@ -11,6 +11,19 @@ export const TITLE_LIST = [
   { minLevel: 45, title: '一代宗师', titleEn: 'Grandmaster' },
 ]
 
+export const NPC_SKILLS = {
+  ice_shard: { name: '冰锥', effect: 'damage', damageMul: 1.2, desc: '发射冰锥造成伤害' },
+  frost_breath: { name: '冰息', effect: 'damage', damageMul: 1.5, desc: '喷射寒冰气息' },
+  blizzard: { name: '暴风雪', effect: 'damage', damageMul: 1.8, desc: '召唤暴风雪' },
+  bear_swipe: { name: '熊掌拍击', effect: 'damage', damageMul: 2.0, desc: '强力拍击' },
+  frost_nova: { name: '冰霜新星', effect: 'stun', turns: 1, desc: '冻结敌人1回合' },
+  dragon_breath: { name: '龙息', effect: 'damage', damageMul: 2.2, desc: '喷射龙息' },
+  ultimate_slam: { name: '终极重击', effect: 'damage', damageMul: 2.5, desc: '全力一击' },
+  ice_age: { name: '冰河时代', effect: 'damage', damageMul: 3.0, desc: '召唤冰河时代' },
+  basic_attack: { name: '普通攻击', effect: 'damage', damageMul: 1.0, desc: '普通攻击' },
+}
+
+
 export const NPC_ENEMIES = [
   {
     id: 'npc_1',

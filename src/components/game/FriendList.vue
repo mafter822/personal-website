@@ -69,12 +69,16 @@ function getIntimacyName(intimacy) {
 function battleFriend(friend) {
   if (state.player.stamina < 10) return
   consumeStamina(10)
+  
+  const levelDiff = friend.level - state.player.level
+  const exp = Math.max(10, 45 + levelDiff * 3)
+  
   emit('start-battle', {
     enemy: {
       ...friend,
       maxHealth: friend.health,
       skills: [],
-      rewards: { exp: 45 + (friend.level - state.player.level) * 3, spirit: 2 },
+      rewards: { exp, spirit: 2 },
     },
     stageId: `friend_${friend.id}`,
     isFriend: true,
