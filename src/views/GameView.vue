@@ -34,6 +34,7 @@
         <ClassTree v-else-if="activeTab === 'class'" />
         <FriendList v-else-if="activeTab === 'friends'" @start-battle="startBattle" />
         <RankingPanel v-else-if="activeTab === 'ranking'" />
+        <RealmPanel v-else-if="activeTab === 'realm'" />
         <ClassTree v-else-if="activeTab === 'class'" />
         <SkillBook v-else-if="activeTab === 'skills'" />
         <WeaponBook v-else-if="activeTab === 'weapons'" />
@@ -60,6 +61,7 @@ import EquipmentPanel from '../components/game/EquipmentPanel.vue'
 import ClassTree from '../components/game/ClassTree.vue'
 import FriendList from '../components/game/FriendList.vue'
 import RankingPanel from '../components/game/RankingPanel.vue'
+import RealmPanel from '../components/game/RealmPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
 const activeTab = ref('home')
@@ -72,6 +74,7 @@ const tabs = [
   { id: 'tower', icon: '🗼', label: '斗神塔' },
   { id: 'friends', icon: '👥', label: '好友' },
   { id: 'ranking', icon: '🏆', label: '排行' },
+  { id: 'realm', icon: '🔮', label: '境界' },
   { id: 'class', icon: '⚔️', label: '职业' },
   { id: 'skills', icon: '✨', label: '技能' },
   { id: 'weapons', icon: '🗡️', label: '武器' },
