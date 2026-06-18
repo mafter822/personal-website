@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Category Filter -->
-    <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
       <button
         v-for="(label, key) in categories"
         :key="key"
@@ -16,7 +16,7 @@
     </div>
 
     <p class="text-sm text-text-secondary mb-4">
-      技能图鉴（共 {{ filteredSkills.length }} 种）· 当前精魄: {{ state.player.spirit }}
+      技能图鉴（共 {{ filteredSkills.length }} 种）· 当前精魄: {{ state.player.spirit }} · Lv.{{ state.player.level }}
     </p>
 
     <!-- Skills Grid -->
@@ -25,17 +25,21 @@
         v-for="skill in filteredSkills"
         :key="skill.id"
         class="card p-4"
+        :class="!isUnlocked(skill) ? 'opacity-40' : ''"
       >
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
             <span class="text-xl">{{ skill.icon }}</span>
             <span class="font-semibold">{{ skill.name }}</span>
+            <span class="text-xs px-2 py-0.5 rounded" :class="tierClass(skill.tier)">
+              {{ skill.tier }}
+            </span>
             <span class="text-xs px-2 py-0.5 rounded" :class="categoryClass(skill.category)">
               {{ categories[skill.category] }}
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <span v-if="ownedSkill" class="text-xs text-green-600">✓ 已拥有</span>
+            <span v-if="ownedSkill" class="text-xs text-green-600">✓</span>
             <span class="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
               Lv.{{ ownedSkill ? ownedSkill.level : 0 }}/{{ skill.maxLevel }}
             </span>
@@ -51,25 +55,29 @@
         </div>
 
         <!-- Description -->
-        <p class="text-sm text-text-secondary mb-3">{{ skill.desc }}</p>
+        <p class="text-sm text-text-secondary mb-2">{{ skill.desc }}</p>
 
-        <!-- Upgrade -->
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-text-muted">
-            <template v-if="ownedSkill && ownedSkill.level >= skill.maxLevel">已满级</template>
-            <template v-else-if="!ownedSkill">Lv.{{ skill.unlockLevel }}+ 升级时可能领悟</template>
-            <template v-else>💎 {{ upgradeCost }} 精魄</template>
+        <!-- Level Unlock Info -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-text-muted">
+            {{ isUnlocked(skill) ? '已解锁' : `Lv.${skill.unlockLevel}+ 解锁` }}
           </span>
+          <span class="text-text-muted">
+            升级: 💎{{ skill.spiritCost }} 精魄
+          </span>
+        </div>
+
+        <!-- Upgrade Button -->
+        <div class="mt-3" v-if="ownedSkill">
           <button
-            v-if="canUpgrade"
+            v-if="ownedSkill.level < skill.maxLevel && state.player.spirit >= upgradeCost(skill)"
             @click="handleUpgrade(skill)"
-            class="px-3 py-1 text-xs rounded bg-primary text-white hover:bg-primary-dark transition-colors"
+            class="w-full px-3 py-1.5 text-xs rounded bg-primary text-white hover:bg-primary-dark transition-colors"
           >
-            升级至 Lv.{{ (ownedSkill ? ownedSkill.level : 0) + 1 }}
+            升级至 Lv.{{ ownedSkill.level + 1 }} (💎{{ upgradeCost(skill) }})
           </button>
-          <span v-else-if="ownedSkill && ownedSkill.level >= skill.maxLevel" class="text-xs text-green-600">
-            满级
-          </span>
+          <span v-else-if="ownedSkill.level >= skill.maxLevel" class="text-xs text-green-600">已满级</span>
+          <span v-else class="text-xs text-text-muted">精魄不足</span>
         </div>
       </div>
     </div>
@@ -79,7 +87,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
-import { SKILLS, getSkillsByCategory } from '../../game/data/skills.js'
+import { SKILLS, getSkillsByCategory, getLevelRange, LEVEL_RANGES } from '../../game/data/skills.js'
 
 const { state, upgradeSkill, learnSkill } = gameStore
 
@@ -100,6 +108,18 @@ function getOwnedSkill(skillId) {
   return state.skills.find(s => s.id === skillId)
 }
 
+const ownedSkill = computed(() => null)
+
+function isUnlocked(skill) {
+  return state.player.level >= skill.unlockLevel
+}
+
+function upgradeCost(skill) {
+  const owned = getOwnedSkill(skill.id)
+  if (!owned) return skill.spiritCost
+  return skill.spiritCost * owned.level
+}
+
 function categoryClass(cat) {
   const map = {
     stat: 'bg-blue-100 text-blue-700',
@@ -112,17 +132,15 @@ function categoryClass(cat) {
   return map[cat] || 'bg-gray-100 text-gray-700'
 }
 
-const ownedSkill = computed(() => {
-  return null
-})
-
-const upgradeCost = computed(() => {
-  return 0
-})
-
-const canUpgrade = computed(() => {
-  return false
-})
+function tierClass(tier) {
+  const map = {
+    T0: 'bg-red-100 text-red-700',
+    T1: 'bg-orange-100 text-orange-700',
+    T2: 'bg-yellow-100 text-yellow-700',
+    T3: 'bg-green-100 text-green-700',
+  }
+  return map[tier] || 'bg-gray-100 text-gray-700'
+}
 
 function handleUpgrade(skill) {
   const owned = getOwnedSkill(skill.id)
@@ -130,7 +148,7 @@ function handleUpgrade(skill) {
     learnSkill(skill)
     return
   }
-  const cost = skill.spiritCost * owned.level
+  const cost = upgradeCost(skill)
   upgradeSkill(skill.id, cost)
 }
 </script>

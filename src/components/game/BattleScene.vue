@@ -10,7 +10,7 @@
         <button
           v-for="s in [1, 2, 3]"
           :key="s"
-          @click="battleSpeed = s"
+          @click="updateSpeed(s)"
           class="px-2 py-1 text-xs rounded transition-colors"
           :class="battleSpeed === s ? 'bg-primary text-white' : 'bg-bg-card text-text-secondary'"
         >
@@ -116,7 +116,7 @@ const props = defineProps({
 
 const emit = defineEmits(['battle-end'])
 
-const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss } = gameStore
+const { state, getCombatStats, getEquippedWeapon, addExp, addSpirit, addWin, addLoss, getBattleSpeed, setBattleSpeed } = gameStore
 
 const log = ref([])
 const currentHp = ref(0)
@@ -128,9 +128,14 @@ const playerLevel = ref(0)
 const battleFinished = ref(false)
 const won = ref(false)
 const rewards = ref(null)
-const battleSpeed = ref(2)
+const battleSpeed = ref(getBattleSpeed())
 const currentRound = ref(0)
 const logContainer = ref(null)
+
+function updateSpeed(s) {
+  battleSpeed.value = s
+  setBattleSpeed(s)
+}
 
 const playerHpPercent = computed(() => maxHp.value > 0 ? (currentHp.value / maxHp.value) * 100 : 0)
 const enemyHpPercent = computed(() => enemyMaxHp.value > 0 ? (enemyHp.value / enemyMaxHp.value) * 100 : 0)

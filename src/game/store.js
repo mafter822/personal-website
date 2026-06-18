@@ -1,5 +1,7 @@
 import { ref, reactive, watch } from 'vue'
 import { SAVE_KEY, GAME_VERSION } from './data/constants.js'
+import { rollSkill, getSkillById } from './data/skills.js'
+import { rollWeapon, getWeaponById } from './data/weapons.js'
 
 function getDefaultState() {
   return {
@@ -17,6 +19,11 @@ function getDefaultState() {
       spirit: 0,
       gold: 0,
       title: '初心者',
+    },
+    settings: {
+      autoSave: true,
+      battleSpeed: 2,
+      lastStaminaRecover: Date.now(),
     },
     skills: [],
     weapons: [],
@@ -74,6 +81,8 @@ function resetGame() {
 
 function addExp(amount) {
   gameState.player.exp += amount
+  const newSkills = []
+  const newWeapons = []
   while (gameState.player.exp >= getExpForLevel(gameState.player.level) && gameState.player.level < 50) {
     gameState.player.exp -= getExpForLevel(gameState.player.level)
     gameState.player.level++
@@ -84,8 +93,23 @@ function addExp(amount) {
     gameState.player.health = gameState.player.maxHealth
     gameState.player.spirit += 2
     updateTitle()
+
+    const ownedSkillIds = gameState.skills.map(s => s.id)
+    const newSkill = rollSkill(gameState.player.level, ownedSkillIds)
+    if (newSkill) {
+      gameState.skills.push({ id: newSkill.id, level: 1 })
+      newSkills.push(newSkill)
+    }
+
+    const ownedWeaponIds = gameState.weapons.map(w => w.id)
+    const newWeapon = rollWeapon(gameState.player.level, ownedWeaponIds)
+    if (newWeapon) {
+      gameState.weapons.push({ ...newWeapon, enhanceLevel: 0 })
+      newWeapons.push(newWeapon)
+    }
   }
   scheduleAutoSave()
+  return { newSkills, newWeapons }
 }
 
 function getExpForLevel(level) {
@@ -118,6 +142,35 @@ function recoverStamina() {
     gameState.player.stamina = Math.min(100, gameState.player.stamina + 1)
     scheduleAutoSave()
   }
+}
+
+function recoverStaminaByTime() {
+  const now = Date.now()
+  const lastRecover = gameState.settings.lastStaminaRecover || now
+  const elapsed = now - lastRecover
+  const minutesPassed = Math.floor(elapsed / 60000)
+  if (minutesPassed > 0 && gameState.player.stamina < 100) {
+    const recoverAmount = Math.min(minutesPassed, 100 - gameState.player.stamina)
+    gameState.player.stamina = Math.min(100, gameState.player.stamina + recoverAmount)
+    gameState.settings.lastStaminaRecover = now
+    scheduleAutoSave()
+  }
+}
+
+function restRecover() {
+  const recoverAmount = Math.min(30, 100 - gameState.player.stamina)
+  gameState.player.stamina = Math.min(100, gameState.player.stamina + recoverAmount)
+  scheduleAutoSave()
+  return recoverAmount
+}
+
+function setBattleSpeed(speed) {
+  gameState.settings.battleSpeed = speed
+  scheduleAutoSave()
+}
+
+function getBattleSpeed() {
+  return gameState.settings.battleSpeed || 2
 }
 
 function addSpirit(amount) {
@@ -232,6 +285,10 @@ export const gameStore = {
   getExpForLevel,
   consumeStamina,
   recoverStamina,
+  recoverStaminaByTime,
+  restRecover,
+  setBattleSpeed,
+  getBattleSpeed,
   addSpirit,
   addGold,
   addWeapon,

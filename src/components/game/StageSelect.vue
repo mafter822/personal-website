@@ -3,13 +3,30 @@
     <h3 class="text-lg font-semibold mb-4">⚔️ 快速乐斗</h3>
     <p class="text-sm text-text-secondary mb-6">挑战NPC对手，获得经验和精魄</p>
 
+    <!-- Stamina Recovery -->
+    <div class="card p-4 mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm font-medium">⚡ 体力: {{ state.player.stamina }}/100</div>
+          <div class="text-xs text-text-muted mt-1">每分钟自动恢复1点，或点击休息恢复30点</div>
+        </div>
+        <button
+          @click="handleRest"
+          class="px-4 py-2 text-sm rounded-lg border border-border hover:border-primary transition-colors"
+          :disabled="state.player.stamina >= 100"
+        >
+          🛋️ 休息 (+30)
+        </button>
+      </div>
+    </div>
+
     <div class="space-y-3">
       <div
         v-for="stage in stages"
         :key="stage.id"
-        class="card p-4 transition-all"
-        :class="isAvailable(stage) ? 'hover:border-primary/30 cursor-pointer' : 'opacity-50'"
-        @click="isAvailable(stage) && startBattle(stage)"
+        class="card p-4 transition-all cursor-pointer"
+        :class="isAvailable(stage) ? 'hover:border-primary/30' : 'opacity-50 cursor-not-allowed'"
+        @click="handleStageClick(stage)"
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
@@ -73,25 +90,45 @@
         </div>
       </div>
       <button
-        @click="startBattle(selectedStage)"
+        @click="confirmBattle"
         class="btn-primary w-full mt-4"
         :disabled="!canChallenge(selectedStage)"
       >
         {{ canChallenge(selectedStage) ? '开始挑战' : '体力不足或等级不够' }}
       </button>
     </div>
+
+    <!-- Insufficient Stamina Modal -->
+    <div v-if="showStaminaModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showStaminaModal = false">
+      <div class="card p-6 max-w-sm w-full mx-4">
+        <h3 class="text-lg font-semibold mb-3">⚡ 体力不足</h3>
+        <p class="text-text-secondary mb-4">
+          当前体力: {{ state.player.stamina }}/{{ insufficientStage?.staminaCost || 0 }} 需要
+        </p>
+        <div class="flex gap-3">
+          <button @click="showStaminaModal = false" class="flex-1 px-4 py-2 rounded-lg border border-border hover:border-primary transition-colors text-sm">
+            关闭
+          </button>
+          <button @click="handleRestFromModal" class="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors text-sm">
+            🛋️ 休息恢复
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { STAGES } from '../../game/data/stages.js'
 
 const emit = defineEmits(['start-battle'])
-const { state, consumeStamina } = gameStore
+const { state, consumeStamina, restRecover, recoverStaminaByTime } = gameStore
 
 const selectedStage = ref(null)
+const showStaminaModal = ref(false)
+const insufficientStage = ref(null)
 
 const stages = STAGES
 
@@ -112,10 +149,37 @@ function stageEmoji(difficulty) {
   return emojis[Math.min(difficulty - 1, emojis.length - 1)]
 }
 
-function startBattle(stage) {
-  if (!canChallenge(stage)) return
+function handleStageClick(stage) {
+  if (!isAvailable(stage)) return
+  recoverStaminaByTime()
+  if (state.player.stamina < stage.staminaCost) {
+    insufficientStage.value = stage
+    showStaminaModal.value = true
+    return
+  }
   selectedStage.value = stage
-  consumeStamina(stage.staminaCost)
-  emit('start-battle', { enemy: stage.enemy, stageId: stage.id })
+}
+
+function confirmBattle() {
+  if (!selectedStage.value || !canChallenge(selectedStage.value)) return
+  consumeStamina(selectedStage.value.staminaCost)
+  emit('start-battle', { enemy: selectedStage.value.enemy, stageId: selectedStage.value.id })
+}
+
+function handleRest() {
+  const amount = restRecover()
+  if (amount > 0) {
+    alert(`休息恢复了 ${amount} 点体力！`)
+  } else {
+    alert('体力已满！')
+  }
+}
+
+function handleRestFromModal() {
+  const amount = restRecover()
+  showStaminaModal.value = false
+  if (amount > 0) {
+    alert(`休息恢复了 ${amount} 点体力！`)
+  }
 }
 </script>

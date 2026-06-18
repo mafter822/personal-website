@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Type Filter -->
-    <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
       <button
         v-for="(label, key) in weaponTypes"
         :key="key"
@@ -16,7 +16,7 @@
     </div>
 
     <p class="text-sm text-text-secondary mb-4">
-      武器图鉴（共 {{ filteredWeapons.length }} 种）
+      武器图鉴（共 {{ filteredWeapons.length }} 种）· 当前等级可掉落 {{ availableCount }} 种
     </p>
 
     <!-- Weapons Grid -->
@@ -25,6 +25,7 @@
         v-for="weapon in filteredWeapons"
         :key="weapon.id"
         class="card p-4"
+        :class="!isAvailable(weapon) ? 'opacity-40' : ''"
       >
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
@@ -34,7 +35,9 @@
               {{ qualityName(weapon.quality) }}
             </span>
           </div>
-          <span v-if="ownedWeapon(weapon.id)" class="text-xs text-green-600">✓ 已拥有</span>
+          <div class="flex items-center gap-2">
+            <span v-if="ownedWeapon(weapon.id)" class="text-xs text-green-600">✓ 已拥有</span>
+          </div>
         </div>
 
         <!-- Info -->
@@ -57,7 +60,7 @@
                 {{ level === 1 ? '基础' : '+' + (level - 1) }}
               </div>
               <div class="font-medium">
-                {{ getDamageRange(weapon, level - 1)[0] }} ~ {{ getDamageRange(weapon, level - 1)[1] }}
+                {{ getDamageRangeLocal(weapon, level - 1)[0] }} ~ {{ getDamageRangeLocal(weapon, level - 1)[1] }}
               </div>
               <div class="text-primary text-xs">
                 {{ level === 1 ? '基础伤害' : '+' + ((level - 1) * 10) + '% 伤害' }}
@@ -72,7 +75,7 @@
 
         <!-- Enhance -->
         <div v-if="ownedWeapon(weapon.id)" class="flex items-center justify-between">
-          <span class="text-xs text-text-muted">💎 {{ weaponQualitySpirit(weapon.quality) }} 精魄</span>
+          <span class="text-xs text-text-muted">💎 {{ weaponEnhanceCost(weapon.quality) }} 精魄</span>
           <button
             v-if="ownedWeapon(weapon.id).enhanceLevel < 3"
             @click="handleEnhance(weapon)"
@@ -90,10 +93,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
-import { WEAPONS, getWeaponsByType, getDamageRange } from '../../game/data/weapons.js'
-import { QUALITY_COLORS, QUALITY_NAMES } from '../../game/data/constants.js'
+import { WEAPONS, getWeaponsByType, getDamageRange, getWeaponEnhanceCost, getLevelRange, LEVEL_RANGES } from '../../game/data/weapons.js'
+import { WEAPON_QUALITY } from '../../game/data/weapons.js'
 
 const { state, enhanceWeapon } = gameStore
 
@@ -106,42 +109,58 @@ const weaponTypes = {
   hidden: '暗器',
 }
 
-const filteredWeapons = getWeaponsByType(activeType.value)
+const filteredWeapons = computed(() => {
+  if (activeType.value === 'all') return WEAPONS
+  return WEAPONS.filter(w => w.type === activeType.value)
+})
+
+const availableCount = computed(() => {
+  const rangeIndex = getLevelRange(state.player.level)
+  return WEAPONS.filter(w => w.weights[rangeIndex] > 0).length
+})
 
 function ownedWeapon(id) {
   return state.weapons.find(w => w.id === id)
 }
 
-function qualityColor(q) { return QUALITY_COLORS[q] || '#9ca3af' }
-function qualityName(q) { return QUALITY_NAMES[q] || '凡器' }
+function isAvailable(weapon) {
+  const rangeIndex = getLevelRange(state.player.level)
+  return weapon.weights[rangeIndex] > 0
+}
+
+function qualityColor(q) { return WEAPON_QUALITY[q]?.color || '#9ca3af' }
+function qualityName(q) { return WEAPON_QUALITY[q]?.name || '凡器' }
 
 const typeNames = { small: '小型', medium: '中型', large: '大型', hidden: '暗器' }
 function typeName(t) { return typeNames[t] || t }
 
 function specialDesc(s) {
   const map = {
+    throwable: '可投掷',
     combo: `+${Math.round(s.chance * 100)}% 连击`,
     sureHit: '必中（无法闪避）',
     dodgeCounter: `+${Math.round(s.chance * 100)}% 闪避反击`,
     ignoreUndying: '忽略装死',
-    ignore: `${Math.round(s.chance * 100)}% 忽略对手${s.turns}回合`,
+    stun: `+${Math.round(s.chance * 100)}% 眩晕${s.turns ? s.turns + '回合' : ''}`,
     rest: `使用后需休息${s.turns}回合`,
     crit: `+${Math.round(s.chance * 100)}% 暴击×${s.multiplier}`,
     noRest: '无需休息',
     instakill: `必中，${Math.round(s.instakill * 100)}% 秒杀`,
+    penetrate: '穿透',
   }
   return map[s.type] || s.type
 }
 
-function weaponQualitySpirit(q) {
-  const map = { common: 5, uncommon: 5, rare: 10, epic: 10, legendary: 15 }
-  return map[q] || 5
+function weaponEnhanceCost(q) { return getWeaponEnhanceCost(q) }
+
+function getDamageRangeLocal(weapon, enhanceLevel) {
+  return getDamageRange(weapon, enhanceLevel)
 }
 
 function handleEnhance(weapon) {
   const owned = ownedWeapon(weapon.id)
   if (!owned) return
-  const cost = weaponQualitySpirit(weapon.quality)
+  const cost = weaponEnhanceCost(weapon.quality)
   enhanceWeapon(weapon.id, cost)
 }
 </script>
