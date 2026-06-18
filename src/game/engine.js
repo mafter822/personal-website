@@ -89,9 +89,7 @@ export class BattleEngine {
       .filter(s => {
         if (!s) return false
         if (s.category !== 'attack' && s.category !== 'control' && s.category !== 'special') return false
-        if (s.effect === 'stun' && this.player.usedActiveSkills.has('stun')) return false
-        if (s.effect === 'disarm' && this.player.usedActiveSkills.has('disarm')) return false
-        if (s.effect === 'ignore' && this.player.usedActiveSkills.has('ignore')) return false
+        if (s.effect && this.player.usedActiveSkills.has(s.effect)) return false
         return true
       })
 
@@ -113,7 +111,7 @@ export class BattleEngine {
     }
 
     if (Math.random() < 0.3) {
-      const controlSkill = availableSkills.find(s => s.effect === 'control' || s.effect === 'stun')
+      const controlSkill = availableSkills.find(s => s.effect === 'stun' || s.effect === 'disarm' || s.effect === 'ignore')
       if (controlSkill) return controlSkill.id
     }
 
@@ -182,13 +180,13 @@ export class BattleEngine {
       this.player.usedActiveSkills.add(skillId)
     } else if (skill && skill.effect === 'disarm') {
       this.executeDisarmSkill(skill)
-      this.player.usedActiveSkills.add(skillId)
+      this.player.usedActiveSkills.add(skill.effect)
     } else if (skill && skill.effect === 'stun') {
       this.executeStunSkill(skill)
-      this.player.usedActiveSkills.add(skillId)
+      this.player.usedActiveSkills.add(skill.effect)
     } else if (skill && skill.effect === 'ignore') {
       this.executeIgnoreSkill(skill)
-      this.player.usedActiveSkills.add(skillId)
+      this.player.usedActiveSkills.add(skill.effect)
     } else if (skill && skill.effect === 'haste') {
       this.executeHasteSkill(skill)
       this.player.usedActiveSkills.add(skillId)
