@@ -31,6 +31,7 @@
           :stage-id="battleStageId"
           @battle-end="onBattleEnd"
         />
+        <ClassTree v-else-if="activeTab === 'class'" />
         <SkillBook v-else-if="activeTab === 'skills'" />
         <WeaponBook v-else-if="activeTab === 'weapons'" />
         <EquipmentPanel v-else-if="activeTab === 'equipment'" />
@@ -53,6 +54,7 @@ import Inventory from '../components/game/Inventory.vue'
 import TowerScene from '../components/game/TowerScene.vue'
 import ShopPanel from '../components/game/ShopPanel.vue'
 import EquipmentPanel from '../components/game/EquipmentPanel.vue'
+import ClassTree from '../components/game/ClassTree.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 
 const activeTab = ref('home')
@@ -63,6 +65,7 @@ const tabs = [
   { id: 'home', icon: '🏠', label: '地盘' },
   { id: 'stage', icon: '⚔️', label: '乐斗' },
   { id: 'tower', icon: '🗼', label: '斗神塔' },
+  { id: 'class', icon: '⚔️', label: '职业' },
   { id: 'skills', icon: '✨', label: '技能' },
   { id: 'weapons', icon: '🗡️', label: '武器' },
   { id: 'equipment', icon: '🛡️', label: '装备' },
