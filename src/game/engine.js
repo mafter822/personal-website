@@ -73,32 +73,53 @@ export class BattleEngine {
   }
 
   start() {
-    this.log = []
-    this.turn = 0
+    this.turn = 1
     this.player.health = this.playerCombatStats.maxHealth
     this.enemy.health = this.enemy.maxHealth
     this.addLog('battle_start', `战斗开始！vs ${this.enemy.name} Lv.${this.enemy.level}`)
-    this.nextTurn()
   }
 
-  nextTurn() {
+  autoSelectSkill() {
+    const hpPercent = this.player.health / this.playerCombatStats.maxHealth
+    const enemyHpPercent = this.enemy.health / this.enemy.maxHealth
+
+    const attackSkills = this.player.skills
+      .map(s => getSkillById(s.id))
+      .filter(s => s && (s.category === 'attack' || s.category === 'control' || s.category === 'special'))
+
+    if (attackSkills.length === 0) return null
+
+    if (hpPercent < 0.3) {
+      const healSkill = attackSkills.find(s => s.effect === 'heal')
+      if (healSkill) return healSkill.id
+    }
+
+    if (enemyHpPercent < 0.2) {
+      const controlSkill = attackSkills.find(s => s.effect === 'stun' || s.effect === 'disarm')
+      if (controlSkill) return controlSkill.id
+    }
+
+    const highDamageSkills = attackSkills.filter(s => s.damageMul && s.damageMul >= 1.5)
+    if (highDamageSkills.length > 0 && Math.random() < 0.6) {
+      return highDamageSkills[Math.floor(Math.random() * highDamageSkills.length)].id
+    }
+
+    if (Math.random() < 0.3) {
+      const controlSkill = attackSkills.find(s => s.effect === 'control' || s.effect === 'stun')
+      if (controlSkill) return controlSkill.id
+    }
+
+    return attackSkills[Math.floor(Math.random() * attackSkills.length)].id
+  }
+
+  startNextTurn() {
     if (this.isOver) return
     this.turn++
-
     this.processBuffs(this.player)
     this.processDebuffs(this.player)
     this.processStun(this.player)
     this.processIgnore(this.player)
     this.processRest(this.player)
-
-    if (this.player.health <= 0) {
-      this.endBattle(false)
-      return
-    }
-    if (this.enemy.health <= 0) {
-      this.endBattle(true)
-      return
-    }
   }
 
   processBuffs(unit) {
@@ -135,16 +156,14 @@ export class BattleEngine {
     }
   }
 
-  playerAttack(skillId) {
+  playerTurn(skillId) {
     if (this.isOver) return
     if (this.player.isStunned) {
       this.addLog('stun', '你被黏住了，无法行动！')
-      this.enemyTurn()
       return
     }
     if (this.player.restTurns > 0) {
       this.addLog('rest', '武器使用后需要休息！')
-      this.enemyTurn()
       return
     }
 
@@ -165,7 +184,6 @@ export class BattleEngine {
     }
 
     this.checkBattleEnd()
-    if (!this.isOver) this.enemyTurn()
   }
 
   executeAttack(skill) {
@@ -281,12 +299,10 @@ export class BattleEngine {
 
     if (this.enemy.isStunned) {
       this.addLog('stun', `${this.enemy.name} 被黏住了，无法行动！`)
-      this.nextTurn()
       return
     }
     if (this.enemy.isIgnored) {
       this.addLog('ignore', `${this.enemy.name} 被忽略了！`)
-      this.nextTurn()
       return
     }
 
@@ -298,7 +314,6 @@ export class BattleEngine {
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)
     if (Math.random() < dodgeChance) {
       this.addLog('dodge', `你闪避了 ${this.enemy.name} 的攻击！`)
-      this.nextTurn()
       return
     }
 
@@ -340,7 +355,6 @@ export class BattleEngine {
     }
 
     this.checkBattleEnd()
-    if (!this.isOver) this.nextTurn()
   }
 
   checkBattleEnd() {
