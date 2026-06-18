@@ -65,13 +65,19 @@ function loadGame() {
     if (saved) {
       const data = JSON.parse(saved)
       if (data.player) {
-        gameState.player = { ...getDefaultState().player, ...data.player }
+        Object.keys(data.player).forEach(key => {
+          gameState.player[key] = data.player[key]
+        })
       }
       if (data.settings) {
-        gameState.settings = { ...getDefaultState().settings, ...data.settings }
+        Object.keys(data.settings).forEach(key => {
+          gameState.settings[key] = data.settings[key]
+        })
       }
       if (data.stats) {
-        gameState.stats = { ...getDefaultState().stats, ...data.stats }
+        Object.keys(data.stats).forEach(key => {
+          gameState.stats[key] = data.stats[key]
+        })
       }
       gameState.skills = data.skills || []
       gameState.weapons = data.weapons || []
@@ -88,8 +94,12 @@ function loadGame() {
 function resetGame() {
   localStorage.removeItem(SAVE_KEY)
   const fresh = getDefaultState()
-  gameState.player = fresh.player
-  gameState.settings = fresh.settings
+  Object.keys(fresh.player).forEach(key => {
+    gameState.player[key] = fresh.player[key]
+  })
+  Object.keys(fresh.settings).forEach(key => {
+    gameState.settings[key] = fresh.settings[key]
+  })
   gameState.skills = []
   gameState.weapons = []
   gameState.equippedWeapon = null

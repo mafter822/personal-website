@@ -7,13 +7,13 @@
     <div class="card p-4 mb-6">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-sm font-medium">⚡ 体力: {{ state.player.stamina }}/100</div>
+          <div class="text-sm font-medium">⚡ 体力: {{ playerStamina }}/100</div>
           <div class="text-xs text-text-muted mt-1">每分钟自动恢复1点，升级恢复20点，休息恢复30点</div>
         </div>
         <button
           @click="handleRest"
           class="px-4 py-2 text-sm rounded-lg border border-border hover:border-primary transition-colors"
-          :disabled="state.player.stamina >= 100"
+          :disabled="playerStamina >= 100"
         >
           🛋️ 休息 (+30)
         </button>
@@ -103,7 +103,7 @@
       <div class="card p-6 max-w-sm w-full mx-4">
         <h3 class="text-lg font-semibold mb-3">⚡ 体力不足</h3>
         <p class="text-text-secondary mb-4">
-          当前体力: {{ state.player.stamina }} · 需要: {{ insufficientStage?.staminaCost || 0 }}
+          当前体力: {{ playerStamina }} · 需要: {{ insufficientStage?.staminaCost || 0 }}
         </p>
         <div class="flex gap-3">
           <button @click="showStaminaModal = false" class="flex-1 px-4 py-2 rounded-lg border border-border hover:border-primary transition-colors text-sm">
@@ -121,7 +121,7 @@
       <div class="card p-6 max-w-sm w-full mx-4">
         <h3 class="text-lg font-semibold mb-3">🔒 等级不足</h3>
         <p class="text-text-secondary mb-4">
-          当前等级: Lv.{{ state.player.level }} · 需要: Lv.{{ insufficientStage?.requiredLevel || 0 }}+
+          当前等级: Lv.{{ playerLevel }} · 需要: Lv.{{ insufficientStage?.requiredLevel || 0 }}+
         </p>
         <button @click="showLevelModal = false" class="w-full px-4 py-2 rounded-lg border border-border hover:border-primary transition-colors text-sm">
           关闭
@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { STAGES } from '../../game/data/stages.js'
 
@@ -145,22 +145,24 @@ const showLevelModal = ref(false)
 const insufficientStage = ref(null)
 
 const stages = STAGES
+const playerLevel = computed(() => state.player.level || 1)
+const playerStamina = computed(() => state.player.stamina || 0)
 
 function cleared(id) {
   return state.stagesCleared.includes(id)
 }
 
 function isAvailable(stage) {
-  return state.player.level >= stage.requiredLevel
+  return playerLevel.value >= stage.requiredLevel
 }
 
 function canChallenge(stage) {
-  return isAvailable(stage) && state.player.stamina >= stage.staminaCost
+  return isAvailable(stage) && playerStamina.value >= stage.staminaCost
 }
 
 function getCannotReason(stage) {
   if (!isAvailable(stage)) return `需要 Lv.${stage.requiredLevel}+`
-  if (state.player.stamina < stage.staminaCost) return '体力不足'
+  if (playerStamina.value < stage.staminaCost) return '体力不足'
   return '无法挑战'
 }
 
@@ -178,7 +180,7 @@ function handleStageClick(stage) {
     return
   }
   
-  if (state.player.stamina < stage.staminaCost) {
+  if (playerStamina.value < stage.staminaCost) {
     insufficientStage.value = stage
     showStaminaModal.value = true
     return
