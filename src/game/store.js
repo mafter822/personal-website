@@ -62,52 +62,30 @@ function saveGame() {
 function loadGame() {
   try {
     const saved = localStorage.getItem(SAVE_KEY)
-    if (saved) {
-      const data = JSON.parse(saved)
-      if (data.player) {
-        Object.keys(data.player).forEach(key => {
-          gameState.player[key] = data.player[key]
-        })
-      }
-      if (data.settings) {
-        Object.keys(data.settings).forEach(key => {
-          gameState.settings[key] = data.settings[key]
-        })
-      }
-      if (data.stats) {
-        Object.keys(data.stats).forEach(key => {
-          gameState.stats[key] = data.stats[key]
-        })
-      }
-      gameState.skills = data.skills || []
-      gameState.weapons = data.weapons || []
-      gameState.equippedWeapon = data.equippedWeapon || null
-      gameState.inventory = data.inventory || []
-      gameState.stagesCleared = data.stagesCleared || []
-      gameState.towerFloor = data.towerFloor || 0
-    }
+    if (!saved) return
+    const data = JSON.parse(saved)
+    if (data.player) Object.assign(gameState.player, data.player)
+    if (data.settings) Object.assign(gameState.settings, data.settings)
+    if (data.stats) Object.assign(gameState.stats, data.stats)
+    if (data.skills) gameState.skills = data.skills
+    if (data.weapons) gameState.weapons = data.weapons
+    if (data.equippedWeapon) gameState.equippedWeapon = data.equippedWeapon
+    if (data.stagesCleared) gameState.stagesCleared = data.stagesCleared
   } catch (e) {
     console.error('Failed to load game:', e)
   }
 }
 
 function resetGame() {
-  localStorage.removeItem(SAVE_KEY)
   const fresh = getDefaultState()
-  Object.keys(fresh.player).forEach(key => {
-    gameState.player[key] = fresh.player[key]
-  })
-  Object.keys(fresh.settings).forEach(key => {
-    gameState.settings[key] = fresh.settings[key]
-  })
+  Object.assign(gameState.player, fresh.player)
+  Object.assign(gameState.settings, fresh.settings)
+  Object.assign(gameState.stats, fresh.stats)
   gameState.skills = []
   gameState.weapons = []
   gameState.equippedWeapon = null
-  gameState.inventory = []
   gameState.stagesCleared = []
   gameState.towerFloor = 0
-  gameState.stats = { wins: 0, losses: 0, streak: 0, maxStreak: 0 }
-  saveGame()
 }
 
 function addExp(amount) {

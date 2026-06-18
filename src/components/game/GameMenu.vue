@@ -37,7 +37,7 @@ const { resetGame, state } = gameStore
 
 function handleReset() {
   if (confirm('确定要清除所有游戏存档吗？此操作不可恢复！')) {
-    resetGame()
+    localStorage.removeItem('penguin-battle-save')
     window.location.reload()
   }
 }
