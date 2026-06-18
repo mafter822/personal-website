@@ -240,6 +240,9 @@ function addWeapon(weapon) {
     existing.count = (existing.count || 1) + 1
   } else {
     gameState.weapons.push({ ...weapon, count: 1 })
+    if (!gameState.equippedWeapon) {
+      gameState.equippedWeapon = weapon.id
+    }
   }
   scheduleAutoSave()
 }

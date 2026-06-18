@@ -281,6 +281,7 @@ async function startAutoBattle() {
 
   addLog('round_start', '', { round: 1 })
   currentRound.value = 1
+  let lastLogIndex = 0
 
   for (let round = 1; round <= 50; round++) {
     if (engine.isOver) break
@@ -290,12 +291,13 @@ async function startAutoBattle() {
     const playerSkill = engine.autoSelectSkill()
     engine.playerTurn(playerSkill)
 
-    const lastLogs = engine.log.slice(engine.log.length - 10)
-    lastLogs.forEach(l => {
+    const newLogs = engine.log.slice(lastLogIndex)
+    newLogs.forEach(l => {
       if (l.type !== 'round_start') {
         addLog(l.type, l.message)
       }
     })
+    lastLogIndex = engine.log.length
 
     currentHp.value = Math.max(0, engine.player.health)
     enemyHp.value = Math.max(0, engine.enemy.health)
@@ -306,10 +308,11 @@ async function startAutoBattle() {
 
     engine.enemyTurn()
 
-    const enemyLogs = engine.log.slice(engine.log.length - 5)
+    const enemyLogs = engine.log.slice(lastLogIndex)
     enemyLogs.forEach(l => {
       addLog(l.type, l.message)
     })
+    lastLogIndex = engine.log.length
 
     currentHp.value = Math.max(0, engine.player.health)
     enemyHp.value = Math.max(0, engine.enemy.health)

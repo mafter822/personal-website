@@ -133,11 +133,14 @@ export class BattleEngine {
     const hpPercent = this.player.health / this.playerCombatStats.maxHealth
     const enemyHpPercent = this.enemy.health / this.enemy.maxHealth
 
+    const passiveEffects = new Set(['undying', 'lifesteal', 'combo', 'dodgeBonus', 'blockChance', 'counterChance', 'reboundChance', 'damageReduce', 'statBonus', 'weaponDamageBonus', 'damageBonus'])
+
     const availableSkills = this.player.skills
       .map(s => getSkillById(s.id))
       .filter(s => {
         if (!s) return false
         if (s.category !== 'attack' && s.category !== 'control' && s.category !== 'special') return false
+        if (s.effect && passiveEffects.has(s.effect)) return false
         if (s.effect && this.player.usedActiveSkills.has(s.effect)) return false
         return true
       })
