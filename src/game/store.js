@@ -82,14 +82,17 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY)
     if (!saved) return
     const data = JSON.parse(saved)
-    if (data.player) Object.assign(gameState.player, data.player)
-    if (data.settings) Object.assign(gameState.settings, data.settings)
-    if (data.stats) Object.assign(gameState.stats, data.stats)
-    if (data.skills) gameState.skills = data.skills
-    if (data.weapons) gameState.weapons = data.weapons
+    if (data.player && typeof data.player === 'object') {
+      const p = data.player
+      if (typeof p.level === 'number' && p.level >= 1 && p.level <= 50) Object.assign(gameState.player, p)
+    }
+    if (data.settings && typeof data.settings === 'object') Object.assign(gameState.settings, data.settings)
+    if (data.stats && typeof data.stats === 'object') Object.assign(gameState.stats, data.stats)
+    if (Array.isArray(data.skills)) gameState.skills = data.skills
+    if (Array.isArray(data.weapons)) gameState.weapons = data.weapons
     if (data.equippedWeapon) gameState.equippedWeapon = data.equippedWeapon
-    if (data.classSkills) gameState.classSkills = data.classSkills
-    if (data.stagesCleared) gameState.stagesCleared = data.stagesCleared
+    if (data.classSkills && typeof data.classSkills === 'object') gameState.classSkills = data.classSkills
+    if (Array.isArray(data.stagesCleared)) gameState.stagesCleared = data.stagesCleared
 
     migrateEquipmentFromWeapons()
   } catch (e) {
@@ -258,8 +261,21 @@ function addWeapon(weapon) {
   const existing = gameState.weapons.find(w => w.id === weapon.id)
   if (existing) {
     existing.count = (existing.count || 1) + 1
+    if (weapon.evolutions) {
+      for (const evo of weapon.evolutions) {
+        if (existing.count >= evo.count && !existing.evolved) {
+          existing.name = evo.name
+          existing.baseDamage = evo.baseDamage
+          existing.special = evo.special
+          existing.desc = evo.desc
+          existing.evolved = evo.name
+          existing.count = 0
+          break
+        }
+      }
+    }
   } else {
-    gameState.weapons.push({ ...weapon, count: 1 })
+    gameState.weapons.push({ ...weapon, count: 1, evolved: null })
     if (!gameState.equippedWeapon) {
       gameState.equippedWeapon = weapon.id
     }

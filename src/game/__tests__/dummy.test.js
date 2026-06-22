@@ -29,7 +29,7 @@ describe('木桩战斗', () => {
     engine.playerTurn(null)
     expect(engine.enemy.health).toBe(10000)
     expect(engine.isOver).toBe(false)
-    expect(engine.stats.kills).toBe(1)
+    expect(engine.player.stats.kills).toBe(1)
   })
 
   it('木桩击杀后战斗不结束', () => {
@@ -66,16 +66,16 @@ describe('木桩战斗', () => {
     for (let i = 0; i < 10; i++) {
       engine.playerTurn(null)
     }
-    expect(engine.stats.misses).toBe(10)
-    expect(engine.stats.hits).toBe(0)
+    expect(engine.player.stats.misses).toBe(10)
+    expect(engine.player.stats.hits).toBe(0)
   })
 
   it('木桩格挡率生效', () => {
     const engine = new BattleEngine(makePlayer(), makeDummy({ blockRate: 1 }), [], null)
     engine.start()
     engine.playerTurn(null)
-    expect(engine.stats.misses).toBe(0)
-    expect(engine.stats.hits).toBe(1)
+    expect(engine.player.stats.misses).toBe(0)
+    expect(engine.player.stats.hits).toBe(1)
   })
 
   it('100回合木桩战斗无NaN', () => {

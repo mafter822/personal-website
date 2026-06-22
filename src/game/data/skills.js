@@ -1,20 +1,11 @@
+import { LEVEL_RANGES, getLevelRange } from './constants.js'
+
 export const SKILL_RARITY = {
   T0: { name: '神技', color: '#ef4444', weight: 0 },
   T1: { name: '核心', color: '#f97316', weight: 1 },
   T2: { name: '输出', color: '#eab308', weight: 2 },
   T3: { name: '辅助', color: '#22c55e', weight: 3 },
 }
-
-export const LEVEL_RANGES = [
-  { min: 1, max: 4, label: 'Lv1-4' },
-  { min: 5, max: 9, label: 'Lv5-9' },
-  { min: 10, max: 14, label: 'Lv10-14' },
-  { min: 15, max: 19, label: 'Lv15-19' },
-  { min: 20, max: 24, label: 'Lv20-24' },
-  { min: 25, max: 29, label: 'Lv25-29' },
-  { min: 30, max: 34, label: 'Lv30-34' },
-  { min: 35, max: 99, label: 'Lv35+' },
-]
 
 export const SKILLS = [
   // T0 神技
@@ -24,11 +15,11 @@ export const SKILLS = [
     weights: [5.0, 3.5, 2.7, 2.4, 2.4, 2.7, 3.0, 3.4] },
   { id: 'def_rebound', name: '大海无量', category: 'defense', icon: '🌊', maxLevel: 5, tier: 'T0', reboundChance: 0.3, reboundDamage: 1.0, desc: '反弹率30%+(等级-1)×3%，反弹100%伤害', spiritCost: 2, unlockLevel: 15,
     weights: [0, 0, 0, 1.3, 1.6, 1.7, 1.5, 1.2] },
-  { id: 'spc_storm', name: '势如暴雨', category: 'special', icon: '⛈️', maxLevel: 1, tier: 'T0', effect: 'multiAttack', desc: '连续投掷最多3种武器，按武器伤害累加', spiritCost: 2, unlockLevel: 15,
+  { id: 'spc_storm', name: '势如暴雨', category: 'special', icon: '⛈️', maxLevel: 1, tier: 'T0', effect: 'multiAttack', energyCost: 100, desc: '连续投掷最多3种武器，按武器伤害累加', spiritCost: 2, unlockLevel: 15,
     weights: [0, 0, 0, 1.0, 1.2, 1.2, 1.0, 0.6] },
-  { id: 'spc_instakill', name: '神来一击', category: 'special', icon: '✨', maxLevel: 1, tier: 'T0', instakillChance: 0.05, desc: '5%几率将对手生命降至1点', spiritCost: 2, unlockLevel: 20,
+  { id: 'spc_instakill', name: '神来一击', category: 'special', icon: '✨', maxLevel: 1, tier: 'T0', instakillChance: 0.05, energyCost: 100, desc: '5%几率将对手生命降至1点', spiritCost: 2, unlockLevel: 20,
     weights: [0, 0, 0, 0, 1.2, 1.8, 1.9, 1.7] },
-  { id: 'atk_palm', name: '如来神掌', category: 'attack', icon: '✋', maxLevel: 1, tier: 'T0', damageMul: 0.5, hpPercent: true, desc: '打掉对手当前一半生命', spiritCost: 2, unlockLevel: 30,
+  { id: 'atk_palm', name: '如来神掌', category: 'attack', icon: '✋', maxLevel: 1, tier: 'T0', damageMul: 0.5, hpPercent: true, energyCost: 100, desc: '打掉对手当前一半生命', spiritCost: 2, unlockLevel: 30,
     weights: [0, 0, 0, 0, 0, 0, 1.5, 1.9] },
   { id: 'spc_dodge', name: '避重就轻', category: 'special', icon: '🛡️', maxLevel: 5, tier: 'T0', desc: '中小型武器伤害+15%，对大型武器闪避+20%', spiritCost: 2, unlockLevel: 30,
     weights: [0, 0, 0, 0, 0, 0, 3.0, 4.4] },
@@ -89,15 +80,6 @@ export const SKILLS = [
 ]
 
 export const TOTAL_WEIGHTS = [100, 214, 324, 391, 401, 366, 335, 295]
-
-export function getLevelRange(level) {
-  for (let i = 0; i < LEVEL_RANGES.length; i++) {
-    if (level >= LEVEL_RANGES[i].min && level <= LEVEL_RANGES[i].max) {
-      return i
-    }
-  }
-  return LEVEL_RANGES.length - 1
-}
 
 export function getAvailableSkillsForLevel(level) {
   const rangeIndex = getLevelRange(level)

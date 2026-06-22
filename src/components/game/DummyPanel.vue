@@ -205,7 +205,7 @@ function startTraining() {
   }
 
   const eng = new BattleEngine(
-    { ...state.player, ...stats_ },
+    state.player,
     dummy,
     skills,
     weapon

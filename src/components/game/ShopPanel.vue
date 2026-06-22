@@ -105,7 +105,7 @@ function applyEffect(effect) {
       break
     case 'heal':
       const maxHp = 100 + (state.player.level - 1) * 15
-      state.player.health = Math.min(maxHp, Math.floor(maxHp * effect.percent))
+      state.player.health = Math.min(maxHp, state.player.health + Math.floor(maxHp * effect.percent))
       break
     case 'buff':
       if (!state.buffs) state.buffs = []

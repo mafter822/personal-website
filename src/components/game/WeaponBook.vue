@@ -95,8 +95,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
-import { WEAPONS, getWeaponsByType, getDamageRange, getWeaponEnhanceCost, getLevelRange, LEVEL_RANGES } from '../../game/data/weapons.js'
-import { WEAPON_QUALITY } from '../../game/data/weapons.js'
+import { WEAPON_QUALITY, LEVEL_RANGES, getLevelRange } from '../../game/data/constants.js'
+import { WEAPONS, getWeaponsByType, getDamageRange, getWeaponEnhanceCost } from '../../game/data/weapons.js'
 
 const { state, enhanceWeapon } = gameStore
 

@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps({
   texts: {
@@ -56,6 +56,10 @@ function type() {
 
 onMounted(() => {
   type()
+})
+
+onUnmounted(() => {
+  if (timeout) clearTimeout(timeout)
 })
 
 watch(() => props.texts, () => {

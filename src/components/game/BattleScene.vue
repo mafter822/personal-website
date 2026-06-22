@@ -147,7 +147,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { BattleEngine } from '../../game/engine.js'
-import { WEAPON_QUALITY } from '../../game/data/weapons.js'
+import { WEAPON_QUALITY } from '../../game/data/constants.js'
 import { getSkillById as getSkillData } from '../../game/data/skills.js'
 
 const props = defineProps({
@@ -241,7 +241,7 @@ async function startAutoBattle() {
   enemyHp.value = props.enemy.health
 
   const engine = new BattleEngine(
-    { ...state.player, ...stats },
+    state.player,
     props.enemy,
     state.skills,
     weapon

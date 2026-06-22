@@ -1,25 +1,18 @@
-export const WEAPON_TYPES = {
-  all: '全部',
-  small: '小型',
-  medium: '中型',
-  large: '大型',
-  hidden: '暗器',
-}
-
-export const WEAPON_QUALITY = {
-  common: { name: '凡器', color: '#9ca3af' },
-  uncommon: { name: '灵器', color: '#22c55e' },
-  rare: { name: '仙器', color: '#3b82f6' },
-  epic: { name: '神器', color: '#a855f7' },
-  legendary: { name: '真·神器', color: '#f97316' },
-}
+import { LEVEL_RANGES, getLevelRange } from './constants.js'
 
 export const WEAPONS = [
   // Lv1-4 开放
   { id: 'w_brick', name: '板砖', type: 'small', quality: 'common', baseDamage: [10, 20], reqLevel: 1, special: { type: 'throwable' }, desc: '新手村神器，街头斗殴必备',
-    weights: [28.6, 17.8, 8.0, 4.2, 2.7, 2.1, 1.9, 1.8] },
+    weights: [28.6, 17.8, 8.0, 4.2, 2.7, 2.1, 1.9, 1.8],
+    evolutions: [
+      { count: 3, name: '回旋板砖', baseDamage: [15, 28], special: { type: 'combo', chance: 0.25 }, desc: '投掷后飞回，25%连击' },
+      { count: 6, name: '超级板砖', baseDamage: [25, 40], special: { type: 'combo', chance: 0.4 }, desc: '回旋+40%连击，传说之砖' },
+    ] },
   { id: 'w_needle', name: '绣花针', type: 'small', quality: 'common', baseDamage: [5, 15], reqLevel: 1, special: { type: 'combo', chance: 0.2 }, desc: '最危险的东西往往最小',
-    weights: [25.4, 15.8, 7.1, 3.8, 2.4, 1.9, 1.7, 1.6] },
+    weights: [25.4, 15.8, 7.1, 3.8, 2.4, 1.9, 1.7, 1.6],
+    evolutions: [
+      { count: 3, name: '暴雨梨花针', baseDamage: [8, 22], special: { type: 'combo', chance: 0.35 }, desc: '针如雨下，35%连击' },
+    ] },
   { id: 'w_dagger', name: '短剑', type: 'small', quality: 'common', baseDamage: [3, 8], reqLevel: 1, special: { type: 'combo', chance: 0.2 }, desc: '一寸短一寸险',
     weights: [23.8, 14.9, 6.6, 3.5, 2.3, 1.7, 1.6, 1.5] },
   { id: 'w_relay', name: '接力棒', type: 'small', quality: 'common', baseDamage: [6, 10], reqLevel: 1, special: { type: 'combo', chance: 0.15 }, desc: '运动会用的那种',
@@ -27,7 +20,10 @@ export const WEAPONS = [
 
   // Lv5-9 开放
   { id: 'w_hammer', name: '充气锤子', type: 'medium', quality: 'uncommon', baseDamage: [20, 35], reqLevel: 5, special: { type: 'stun', chance: 0.1 }, desc: 'Q宠乐园最受欢迎的玩具',
-    weights: [0, 9.9, 11.5, 6.1, 3.9, 3.0, 2.7, 2.6] },
+    weights: [0, 9.9, 11.5, 6.1, 3.9, 3.0, 2.7, 2.6],
+    evolutions: [
+      { count: 3, name: '超级充气锤', baseDamage: [28, 45], special: { type: 'stun', chance: 0.2 }, desc: '更大更Q弹，20%眩晕' },
+    ] },
   { id: 'w_frying_pan', name: '平底锅', type: 'medium', quality: 'uncommon', baseDamage: [18, 22], reqLevel: 5, special: { type: 'dodgeCounter', chance: 0.05 }, desc: '厨房神器，更是防身利器',
     weights: [0, 9.9, 11.5, 6.1, 3.9, 3.0, 2.7, 2.6] },
   { id: 'w_wooden_sword', name: '木剑', type: 'medium', quality: 'uncommon', baseDamage: [10, 25], reqLevel: 5, special: { type: 'ignoreUndying' }, desc: '虽然是木头的',
@@ -39,11 +35,17 @@ export const WEAPONS = [
 
   // Lv10-14 开放
   { id: 'w_bat', name: '棒球棒', type: 'medium', quality: 'common', baseDamage: [20, 28], reqLevel: 10, special: { type: 'combo', chance: 0.1, throwable: true }, desc: '全垒打的快感',
-    weights: [0, 0, 8.9, 12.2, 7.8, 6.0, 5.4, 5.3] },
+    weights: [0, 0, 8.9, 12.2, 7.8, 6.0, 5.4, 5.3],
+    evolutions: [
+      { count: 3, name: '烈焰棒球棒', baseDamage: [28, 38], special: { type: 'combo', chance: 0.2 }, desc: '燃烧的全垒打，20%连击' },
+    ] },
   { id: 'w_broad_sword', name: '宽刃剑', type: 'large', quality: 'common', baseDamage: [18, 28], reqLevel: 10, special: { type: 'combo', chance: 0.1, throwable: true }, desc: '剑身宽阔，势大力沉',
     weights: [0, 0, 7.1, 9.4, 6.0, 4.6, 4.2, 4.0] },
   { id: 'w_shovel', name: '铲子', type: 'large', quality: 'uncommon', baseDamage: [15, 36], reqLevel: 10, special: { type: 'combo', chance: 0.1, throwable: true }, desc: '挖坑埋人两不误',
-    weights: [0, 0, 5.3, 7.3, 4.7, 3.6, 3.2, 3.2] },
+    weights: [0, 0, 5.3, 7.3, 4.7, 3.6, 3.2, 3.2],
+    evolutions: [
+      { count: 3, name: '黄金铲子', baseDamage: [22, 45], special: { type: 'combo', chance: 0.2 }, desc: '黄金打造，挖出财富，20%连击' },
+    ] },
   { id: 'w_dragon_halberd', name: '青龙戟', type: 'large', quality: 'uncommon', baseDamage: [20, 36], reqLevel: 10, special: { type: 'combo', chance: 0.1, throwable: true }, desc: '青龙偃月，威震华夏',
     weights: [0, 0, 3.5, 7.5, 4.8, 3.7, 3.3, 3.2] },
   { id: 'w_folding_stool', name: '折凳', type: 'hidden', quality: 'rare', baseDamage: [20, 30], reqLevel: 10, special: { type: 'stun', turns: 2 }, desc: '七大武器之首',
@@ -79,26 +81,6 @@ export const WEAPONS = [
 ]
 
 export const WEAPON_TOTAL_WEIGHTS = [315, 253, 282, 266, 207, 135, 75, 39]
-
-export const LEVEL_RANGES = [
-  { min: 1, max: 4, label: 'Lv1-4' },
-  { min: 5, max: 9, label: 'Lv5-9' },
-  { min: 10, max: 14, label: 'Lv10-14' },
-  { min: 15, max: 19, label: 'Lv15-19' },
-  { min: 20, max: 24, label: 'Lv20-24' },
-  { min: 25, max: 29, label: 'Lv25-29' },
-  { min: 30, max: 34, label: 'Lv30-34' },
-  { min: 35, max: 99, label: 'Lv35+' },
-]
-
-export function getLevelRange(level) {
-  for (let i = 0; i < LEVEL_RANGES.length; i++) {
-    if (level >= LEVEL_RANGES[i].min && level <= LEVEL_RANGES[i].max) {
-      return i
-    }
-  }
-  return LEVEL_RANGES.length - 1
-}
 
 export function getAvailableWeaponsForLevel(level) {
   const rangeIndex = getLevelRange(level)

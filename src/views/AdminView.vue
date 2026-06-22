@@ -237,8 +237,8 @@ onMounted(() => {
   }
 })
 
-function login() {
-  if (verifyPassword(passwordInput.value)) {
+async function login() {
+  if (await verifyPassword(passwordInput.value)) {
     authenticated.value = true
     error.value = ''
   } else {

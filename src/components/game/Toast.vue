@@ -22,6 +22,7 @@ const props = defineProps({
 })
 
 const visible = ref(false)
+let hideTimeout = null
 
 const typeClass = {
   info: 'bg-primary text-white',
@@ -31,9 +32,10 @@ const typeClass = {
 }
 
 watch(() => props.message, (val) => {
+  if (hideTimeout) clearTimeout(hideTimeout)
   if (val) {
     visible.value = true
-    setTimeout(() => { visible.value = false }, props.duration)
+    hideTimeout = setTimeout(() => { visible.value = false }, props.duration)
   }
 })
 </script>

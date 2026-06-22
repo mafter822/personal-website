@@ -1,51 +1,35 @@
-import { CALC, SPIRIT_PER_WIN } from './data/constants.js'
+import { CALC, SPIRIT_PER_WIN, ENERGY_PER_ATTACK, ENERGY_PER_HIT, ENERGY_MAX } from './data/constants.js'
 import { getSkillById } from './data/skills.js'
 import { CLASSES } from './data/classes.js'
 import { NPC_SKILLS } from './data/pets.js'
+import { Fighter } from './ecs.js'
 
 export class BattleEngine {
-  constructor(player, enemy, playerSkills, equippedWeapon) {
-    this.player = {
-      ...player,
-      maxHealth: player.maxHealth,
+  constructor(playerConfig, enemyConfig, playerSkills, equippedWeapon) {
+    this.player = new Fighter({
+      ...playerConfig,
       skills: playerSkills,
       weapon: equippedWeapon,
-      buffs: [],
-      debuffs: [],
-      undyingUsed: false,
-      isStunned: false,
-      stunTurns: 0,
-      isIgnored: false,
-      ignoreTurns: 0,
-      weaponDisarmed: false,
-      restTurns: 0,
-      usedActiveSkills: new Set(),
-    }
-    this.enemy = {
-      ...enemy,
-      maxHealth: enemy.maxHealth || enemy.health,
-      skills: enemy.skills || ['basic_attack'],
-      buffs: [],
-      debuffs: [],
-      undyingUsed: false,
-      isStunned: false,
-      stunTurns: 0,
-    }
+    })
+    this.enemy = new Fighter({
+      ...enemyConfig,
+      maxHealth: enemyConfig.maxHealth || enemyConfig.health,
+      skills: enemyConfig.skills || ['basic_attack'],
+    })
+
     this.turn = 0
     this.log = []
     this.isOver = false
     this.winner = null
     this.rewards = null
-    this.stats = { totalDamage: 0, crits: 0, maxHit: 0, hits: 0, misses: 0, kills: 0 }
   }
 
   get playerCombatStats() {
-    let str = Number.isFinite(this.player.strength) ? this.player.strength : 0
-    let agi = Number.isFinite(this.player.agility) ? this.player.agility : 0
-    let spd = Number.isFinite(this.player.speed) ? this.player.speed : 0
-    let hp = Number.isFinite(this.player.maxHealth) ? this.player.maxHealth : 100
+    let str = this.player.attributes.strength
+    let agi = this.player.attributes.agility
+    let spd = this.player.attributes.speed
+    let hp = this.player.attributes.maxHealth
 
-    // Apply class bonuses
     if (this.player.classId) {
       const classBonus = this.getClassBonus()
       str += classBonus.strength || 0
@@ -54,8 +38,8 @@ export class BattleEngine {
       hp += classBonus.maxHealth || 0
     }
 
-    // Apply skill stat bonuses
-    this.player.skills.forEach(owned => {
+    const ownedSkills = this.player.actions.skills
+    ownedSkills.forEach(owned => {
       const skill = getSkillById(owned.id)
       if (skill && skill.statBonus) {
         const amount = skill.statBonus.amount * owned.level
@@ -67,13 +51,11 @@ export class BattleEngine {
       }
     })
 
-    // Apply buffs
     const hasteBuff = this.player.buffs.find(b => b.type === 'haste')
     if (hasteBuff) {
       spd = Math.floor(spd * (1 + hasteBuff.speedBonus))
     }
 
-    // Apply realm bonuses
     if (this.player.realmBonus) {
       str += this.player.realmBonus.strength || 0
       agi += this.player.realmBonus.agility || 0
@@ -81,7 +63,6 @@ export class BattleEngine {
       hp += this.player.realmBonus.maxHealth || 0
     }
 
-    // Apply streak status
     if (this.player.streakStatus === 'excited') {
       str = Math.floor(str * 1.3)
     } else if (this.player.streakStatus === 'depressed') {
@@ -149,6 +130,15 @@ export class BattleEngine {
 
     if (availableSkills.length === 0) return null
 
+    if (this.player.energy >= ENERGY_MAX) {
+      const ultimateSkill = availableSkills.find(s => s.energyCost && s.energyCost >= ENERGY_MAX)
+      if (ultimateSkill) {
+        this.player.energy = 0
+        this.addLog('ultimate', `${this.player.name} 释放终结技【${ultimateSkill.name}】！`, { source: this.player.name, skillName: ultimateSkill.name })
+        return ultimateSkill.id
+      }
+    }
+
     if (hpPercent < 0.3) {
       const healSkill = availableSkills.find(s => s.effect === 'heal')
       if (healSkill) return healSkill.id
@@ -187,17 +177,23 @@ export class BattleEngine {
   }
 
   processBuffs(unit) {
-    unit.buffs = unit.buffs.filter(b => {
+    const buffs = unit.status.buffs
+    for (let i = buffs.length - 1; i >= 0; i--) {
+      const b = buffs[i]
+      if (b.onTick) b.onTick(unit, this)
       b.turns--
-      return b.turns > 0
-    })
+      if (b.turns <= 0) buffs.splice(i, 1)
+    }
   }
 
   processDebuffs(unit) {
-    unit.debuffs = unit.debuffs.filter(d => {
+    const debuffs = unit.status.debuffs
+    for (let i = debuffs.length - 1; i >= 0; i--) {
+      const d = debuffs[i]
+      if (d.onTick) d.onTick(unit, this)
       d.turns--
-      return d.turns > 0
-    })
+      if (d.turns <= 0) debuffs.splice(i, 1)
+    }
   }
 
   processStun(unit) {
@@ -266,23 +262,27 @@ export class BattleEngine {
       if (Math.random() < weapon.special.chance) {
         const comboDamage = CALC.damage(stats, weapon, null)
         damage += comboDamage
-        this.addLog('combo', `【${weaponName}】连击！追加一击！再损失 ${comboDamage} 点！`)
+        this.addLog('combo', `【${weaponName}】连击！追加一击！再损失 ${comboDamage} 点！`, { source: this.player.name, target: this.enemy.name, value: comboDamage, weaponName })
       }
     }
 
     const critChance = CALC.critRate(stats.agility)
-    const isCrit = Math.random() < critChance
+    const critResult = CALC.prdCheck(critChance, this.player.critCounter)
+    this.player.critCounter = critResult.counter
+    const isCrit = critResult.triggered
     if (isCrit) {
       damage = Math.floor(damage * 1.5)
-      this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`)
+      this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
     }
 
     const enemyDodge = this.enemy.isDummy
       ? (this.enemy.dodgeRate || 0)
       : CALC.dodgeRate(this.enemy.agility, this.enemy.speed)
-    if (Math.random() < enemyDodge) {
-      this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`)
-      this.stats.misses++
+    const dodgeResult = CALC.prdCheck(enemyDodge, this.enemy.dodgeCounter)
+    this.enemy.dodgeCounter = dodgeResult.counter
+    if (dodgeResult.triggered) {
+      this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`, { source: this.player.name, target: this.enemy.name, weaponName })
+      this.player.stats.misses++
       return
     }
 
@@ -292,33 +292,51 @@ export class BattleEngine {
         : CALC.blockRate()
       if (Math.random() < blockChance) {
         damage = Math.floor(damage * 0.5)
-        this.addLog('block', `${this.enemy.name} 格挡了部分伤害！`)
+        this.addLog('block', `${this.enemy.name} 格挡了部分伤害！`, { source: this.enemy.name, target: this.player.name })
       }
     }
 
     this.enemy.health = Math.max(0, this.enemy.health - (Number.isFinite(damage) ? damage : 0))
 
     if (Number.isFinite(damage) && damage > 0) {
-      this.stats.totalDamage += damage
-      this.stats.hits++
-      if (damage > this.stats.maxHit) this.stats.maxHit = damage
-      if (isCrit) this.stats.crits++
+      this.player.stats.totalDamage += damage
+      this.player.stats.hits++
+      if (damage > this.player.stats.maxHit) this.player.stats.maxHit = damage
+      if (isCrit) this.player.stats.crits++
+    }
+
+    this.player.energy = Math.min(ENERGY_MAX, this.player.energy + ENERGY_PER_ATTACK)
+    if (this.player.energy >= ENERGY_MAX && this.player.energy - ENERGY_PER_ATTACK < ENERGY_MAX) {
+      this.addLog('energy_full', `${this.player.name} 能量蓄满！下一次攻击将释放终结技！`, { source: this.player.name })
     }
 
     if (skill) {
-      this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`)
+      this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, skillName: skill.name })
+      if (skill.dot && skill.dotTurns) {
+        const dotDmg = 5 + Math.floor(this.playerCombatStats.agility * 0.2)
+        this.enemy.debuffs.push({
+          type: 'dot',
+          turns: skill.dotTurns,
+          damage: dotDmg,
+          onTick: (unit, engine) => {
+            unit.health = Math.max(0, unit.health - dotDmg)
+            engine.addLog('dot', `${unit.name} 受到灼烧伤害 ${dotDmg} 点！`, { source: 'dot', target: unit.name, value: dotDmg })
+          },
+        })
+        this.addLog('dot', `${this.enemy.name} 被施加了持续灼烧，每回合${dotDmg}点伤害，持续${skill.dotTurns}回合`, { source: this.player.name, target: this.enemy.name, value: dotDmg })
+      }
     } else {
-      this.addLog('attack', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}损失 ${damage} 点生命！`)
+      this.addLog('attack', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
     }
 
     if (skill && skill.noCounter) {
-      this.addLog('special', '无法被反击！')
+      this.addLog('special', '无法被反击！', { source: this.player.name })
     } else {
       const counterChance = CALC.counterRate(this.enemy.agility)
       if (Math.random() < counterChance) {
         const counterDmg = Math.floor((Number.isFinite(damage) ? damage : 0) * 0.5)
         this.player.health = Math.max(0, this.player.health - counterDmg)
-        this.addLog('counter', `${this.enemy.name} 反击造成 ${counterDmg} 伤害！`)
+        this.addLog('counter', `${this.enemy.name} 反击造成 ${counterDmg} 伤害！`, { source: this.enemy.name, target: this.player.name, value: counterDmg })
       }
     }
 
@@ -331,7 +349,7 @@ export class BattleEngine {
       if (Math.random() < sk.lifesteal) {
         const healed = Math.floor((Number.isFinite(damage) ? damage : 0) * 0.5)
         this.player.health = Math.min(this.playerCombatStats.maxHealth, this.player.health + healed)
-        this.addLog('heal', `嗜血触发，恢复 ${healed} 生命`)
+        this.addLog('heal', `嗜血触发，恢复 ${healed} 生命`, { source: this.player.name, value: healed })
       }
     }
   }
@@ -339,26 +357,26 @@ export class BattleEngine {
   executeHealSkill(skill) {
     const healAmount = Math.max(25, Math.floor(this.playerCombatStats.maxHealth * (skill.healPercent || 0.25)))
     this.player.health = Math.min(this.playerCombatStats.maxHealth, this.player.health + healAmount)
-    this.addLog('heal', `矿泉水恢复 ${healAmount} 生命`)
+    this.addLog('heal', `矿泉水恢复 ${healAmount} 生命`, { source: this.player.name, value: healAmount, skillName: skill.name })
 
     const damage = (skill.fixedDamage || 0) + this.playerCombatStats.agility * 0.2
     this.enemy.health = Math.max(0, this.enemy.health - Math.floor(damage))
-    this.addLog('attack', `造成 ${Math.floor(damage)} 伤害`)
+    this.addLog('attack', `造成 ${Math.floor(damage)} 伤害`, { source: this.player.name, target: this.enemy.name, value: Math.floor(damage), skillName: skill.name })
   }
 
   executeDisarmSkill(skill) {
     if (Math.random() < skill.chance) {
       this.enemy.weapon = null
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！夺取了 ${this.enemy.name} 的武器`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！夺取了 ${this.enemy.name}的武器`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
     } else {
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}已无武器可夺！`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}已无武器可夺！`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
     }
   }
 
   executeStunSkill(skill) {
     this.enemy.stunTurns = skill.turns
     this.enemy.isStunned = true
-    this.addLog('control', `${this.player.name}发动【${skill.name}】！${this.enemy.name}被黏住 ${skill.turns} 回合`)
+    this.addLog('control', `${this.player.name}发动【${skill.name}】！${this.enemy.name}被黏住 ${skill.turns} 回合`, { source: this.player.name, target: this.enemy.name, value: skill.turns, skillName: skill.name })
   }
 
   executeIgnoreSkill(skill) {
@@ -366,9 +384,9 @@ export class BattleEngine {
     this.enemy.isIgnored = true
     if (skill.fixedDamage) {
       this.enemy.health = Math.max(0, this.enemy.health - skill.fixedDamage)
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合，造成 ${skill.fixedDamage} 伤害`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合，造成 ${skill.fixedDamage} 伤害`, { source: this.player.name, target: this.enemy.name, value: skill.fixedDamage, skillName: skill.name })
     } else {
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合`)
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！忽略 ${skill.turns} 回合`, { source: this.player.name, target: this.enemy.name, value: skill.turns, skillName: skill.name })
     }
   }
 
@@ -379,7 +397,7 @@ export class BattleEngine {
       speedBonus: skill.speedBonus,
       damageBonus: skill.damageBonus,
     })
-    this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`)
+    this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`, { source: this.player.name, skillName: skill.name, value: skill.turns })
   }
 
   chooseEnemySkill() {
@@ -440,15 +458,17 @@ export class BattleEngine {
     }
 
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)
-    if (Math.random() < dodgeChance) {
-      this.addLog('dodge', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}闪开了！`)
+    const playerDodgeResult = CALC.prdCheck(dodgeChance, this.player.dodgeCounter)
+    this.player.dodgeCounter = playerDodgeResult.counter
+    if (playerDodgeResult.triggered) {
+      this.addLog('dodge', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}闪开了！`, { source: this.enemy.name, target: this.player.name, skillName })
       return
     }
 
     const blockChance = this.player.skills.some(s => getSkillById(s.id)?.blockChance) ? 0.3 : 0.15
     if (Math.random() < blockChance) {
       damage = Math.floor(damage * 0.5)
-      this.addLog('block', `${this.enemy.name}用【${skillName}】攻击！${this.player.name} 格挡了部分伤害！`)
+      this.addLog('block', `${this.enemy.name}用【${skillName}】攻击！${this.player.name} 格挡了部分伤害！`, { source: this.enemy.name, target: this.player.name, skillName })
     }
 
     const defReduction = this.playerDamageReduction
@@ -463,12 +483,23 @@ export class BattleEngine {
       if (Math.random() < sk.reboundChance) {
         const reboundDmg = Math.floor((Number.isFinite(damage) ? damage : 0) * (sk.reboundDamage || 0.5))
         this.enemy.health = Math.max(0, this.enemy.health - reboundDmg)
-        this.addLog('rebound', `大海无量！反弹 ${reboundDmg} 伤害`)
+        this.addLog('rebound', `大海无量！反弹 ${reboundDmg} 伤害`, { source: this.player.name, target: this.enemy.name, value: reboundDmg })
       }
     }
 
     this.player.health = Math.max(0, this.player.health - (Number.isFinite(damage) ? damage : 0))
-    this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}损失 ${damage} 点生命！`)
+    this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}损失 ${damage} 点生命！`, { source: this.enemy.name, target: this.player.name, value: damage, skillName })
+
+    if (Number.isFinite(damage) && damage > 0) {
+      this.enemy.enemyTotalDamage += damage
+    }
+
+    if (Number.isFinite(damage) && damage > 0) {
+      this.player.energy = Math.min(ENERGY_MAX, this.player.energy + ENERGY_PER_HIT)
+      if (this.player.energy >= ENERGY_MAX && this.player.energy - ENERGY_PER_HIT < ENERGY_MAX) {
+        this.addLog('energy_full', `${this.player.name} 能量蓄满！下一次攻击将释放终结技！`, { source: this.player.name })
+      }
+    }
 
     if (this.player.health <= 0) {
       const deadSkill = this.player.skills.find(s => {
@@ -488,14 +519,37 @@ export class BattleEngine {
   checkBattleEnd() {
     if (this.enemy.health <= 0) {
       if (this.enemy.isDummy) {
-        this.stats.kills++
+        this.player.stats.kills++
         this.enemy.health = this.enemy.maxHealth
-        this.addLog('heal', `${this.enemy.name} 血量回满！累计击杀 ${this.stats.kills} 次`)
+        this.addLog('heal', `${this.enemy.name} 血量回满！累计击杀 ${this.player.stats.kills} 次`)
         return
       }
       this.endBattle(true)
     } else if (this.player.health <= 0) {
       this.endBattle(false)
+    } else if (this.turn >= 50) {
+      this.resolveDraw()
+    }
+  }
+
+  resolveDraw() {
+    const playerHpPercent = this.player.health / this.playerCombatStats.maxHealth
+    const enemyHpPercent = this.enemy.health / this.enemy.maxHealth
+    const playerDamage = this.player.stats.totalDamage
+    const enemyDamage = this.enemy.enemyTotalDamage || 0
+
+    if (playerHpPercent > enemyHpPercent) {
+      this.endBattle(true)
+    } else if (enemyHpPercent > playerHpPercent) {
+      this.endBattle(false)
+    } else if (playerDamage > enemyDamage) {
+      this.endBattle(true)
+    } else if (enemyDamage > playerDamage) {
+      this.endBattle(false)
+    } else {
+      this.isOver = true
+      this.winner = 'draw'
+      this.addLog('draw', '双方势均力敌，此局平手！')
     }
   }
 
@@ -510,11 +564,28 @@ export class BattleEngine {
     }
   }
 
-  addLog(type, message) {
-    this.log.push({ turn: this.turn, type, message, timestamp: Date.now() })
+  addLog(type, message, meta = {}) {
+    this.log.push({
+      turn: this.turn,
+      type,
+      source: meta.source || null,
+      target: meta.target || null,
+      value: Number.isFinite(meta.value) ? meta.value : null,
+      skillName: meta.skillName || null,
+      weaponName: meta.weaponName || null,
+      message,
+      timestamp: Date.now(),
+    })
   }
 
   getStats() {
-    return { ...this.stats }
+    return {
+      totalDamage: this.player.stats.totalDamage,
+      crits: this.player.stats.crits,
+      maxHit: this.player.stats.maxHit,
+      hits: this.player.stats.hits,
+      misses: this.player.stats.misses,
+      kills: this.player.stats.kills,
+    }
   }
 }

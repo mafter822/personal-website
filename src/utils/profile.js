@@ -4,16 +4,27 @@ const STORAGE_KEY = 'profile-data'
 const PASSWORD_KEY = 'admin-password'
 const DEFAULT_PASSWORD = 'admin123'
 
+async function hashPassword(password) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export function getPassword() {
-  return localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD
+  return sessionStorage.getItem(PASSWORD_KEY) || null
 }
 
-export function setPassword(newPassword) {
-  localStorage.setItem(PASSWORD_KEY, newPassword)
+export async function setPassword(newPassword) {
+  const hashed = await hashPassword(newPassword)
+  sessionStorage.setItem(PASSWORD_KEY, hashed)
 }
 
-export function verifyPassword(input) {
-  return input === getPassword()
+export async function verifyPassword(input) {
+  const stored = getPassword()
+  if (!stored) return input === DEFAULT_PASSWORD
+  const hashed = await hashPassword(input)
+  return hashed === stored
 }
 
 export function getProfile() {

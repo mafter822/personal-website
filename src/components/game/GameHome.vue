@@ -143,7 +143,7 @@ import { computed } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { EXP_PER_LEVEL } from '../../game/data/constants.js'
 import { getSkillById } from '../../game/data/skills.js'
-import { WEAPON_QUALITY } from '../../game/data/weapons.js'
+import { WEAPON_QUALITY } from '../../game/data/constants.js'
 
 const { state, getCombatStats, getEquippedWeapon } = gameStore
 

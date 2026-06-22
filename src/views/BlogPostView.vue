@@ -25,6 +25,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { fetchPost } from '../utils/github.js'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 const { t, locale } = useI18n()
@@ -39,7 +40,7 @@ async function loadPost() {
     if (data) {
       post.value = {
         ...data,
-        content: marked(data.content),
+        content: DOMPurify.sanitize(marked(data.content)),
       }
     }
   } catch (e) {
