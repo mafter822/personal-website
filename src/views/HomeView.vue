@@ -110,13 +110,22 @@
 
     <!-- Game Section -->
     <section class="py-16 px-6">
-      <div class="max-w-4xl mx-auto text-center">
-        <router-link to="/game" class="inline-block card p-8 hover:shadow-lg transition-all group cursor-pointer">
-          <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">🐧</div>
-          <h2 class="text-2xl font-bold mb-2 heading-italic">企鹅大乱斗</h2>
-          <p class="text-text-secondary">回合制宠物对战游戏，挑战PVE关卡，收集技能和武器！</p>
-          <div class="mt-4 text-primary font-medium">进入游戏 →</div>
-        </router-link>
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl font-bold heading-italic text-center mb-12">{{ t('nav.games') || '游戏' }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <router-link to="/game" class="inline-block card p-8 hover:shadow-lg transition-all group cursor-pointer text-center">
+            <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">🐧</div>
+            <h3 class="text-2xl font-bold mb-2 heading-italic">企鹅大乱斗</h3>
+            <p class="text-text-secondary">回合制宠物对战游戏，挑战PVE关卡，收集技能和武器！</p>
+            <div class="mt-4 text-primary font-medium">进入游戏 →</div>
+          </router-link>
+          <router-link to="/evolve" class="inline-block card p-8 hover:shadow-lg transition-all group cursor-pointer text-center">
+            <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">🧬</div>
+            <h3 class="text-2xl font-bold mb-2 heading-italic">Evolve</h3>
+            <p class="text-text-secondary">增量文明进化游戏，从原始汤进化为星际帝国！</p>
+            <div class="mt-4 text-primary font-medium">进入游戏 →</div>
+          </router-link>
+        </div>
       </div>
     </section>
 

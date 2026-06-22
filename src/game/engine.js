@@ -1,7 +1,7 @@
 import { CALC, SPIRIT_PER_WIN, ENERGY_PER_ATTACK, ENERGY_PER_HIT, ENERGY_MAX } from './data/constants.js'
 import { getSkillById } from './data/skills.js'
 import { CLASSES } from './data/classes.js'
-import { NPC_SKILLS } from './data/pets.js'
+import { NPC_SKILLS, generateNPCName } from './data/pets.js'
 import { Fighter } from './ecs.js'
 
 export class BattleEngine {
@@ -11,8 +11,10 @@ export class BattleEngine {
       skills: playerSkills,
       weapon: equippedWeapon,
     })
+    const enemyName = enemyConfig.name || generateNPCName()
     this.enemy = new Fighter({
       ...enemyConfig,
+      name: enemyName,
       maxHealth: enemyConfig.maxHealth || enemyConfig.health,
       skills: enemyConfig.skills || ['basic_attack'],
     })
@@ -272,7 +274,6 @@ export class BattleEngine {
     const isCrit = critResult.triggered
     if (isCrit) {
       damage = Math.floor(damage * 1.5)
-      this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
     }
 
     const enemyDodge = this.enemy.isDummy
@@ -286,13 +287,14 @@ export class BattleEngine {
       return
     }
 
+    let blocked = false
     if (!this.player.isIgnored) {
       const blockChance = this.enemy.isDummy
         ? (this.enemy.blockRate || 0)
         : CALC.blockRate()
       if (Math.random() < blockChance) {
         damage = Math.floor(damage * 0.5)
-        this.addLog('block', `${this.enemy.name} 格挡了部分伤害！`, { source: this.enemy.name, target: this.player.name })
+        blocked = true
       }
     }
 
@@ -310,8 +312,10 @@ export class BattleEngine {
       this.addLog('energy_full', `${this.player.name} 能量蓄满！下一次攻击将释放终结技！`, { source: this.player.name })
     }
 
+    const critText = isCrit ? '暴击！' : ''
+    const blockText = blocked ? '格挡了部分伤害，' : ''
     if (skill) {
-      this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, skillName: skill.name })
+      this.addLog('attack', `${this.player.name}发动【${skill.name}】${critText}！${this.enemy.name}${blockText}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, skillName: skill.name, isCrit, blocked })
       if (skill.dot && skill.dotTurns) {
         const dotDmg = 5 + Math.floor(this.playerCombatStats.agility * 0.2)
         this.enemy.debuffs.push({
@@ -326,7 +330,7 @@ export class BattleEngine {
         this.addLog('dot', `${this.enemy.name} 被施加了持续灼烧，每回合${dotDmg}点伤害，持续${skill.dotTurns}回合`, { source: this.player.name, target: this.enemy.name, value: dotDmg })
       }
     } else {
-      this.addLog('attack', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
+      this.addLog('attack', `${this.player.name}用【${weaponName}】${critText}攻击，${this.enemy.name}${blockText}损失 ${damage} 点生命！`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName, isCrit, blocked })
     }
 
     if (skill && skill.noCounter) {
@@ -408,7 +412,16 @@ export class BattleEngine {
       this.enemy.skills.forEach(skillId => {
         const skill = NPC_SKILLS[skillId]
         if (skill) {
-          const weight = skill.damageMul > 2 ? 15 : skill.damageMul > 1.5 ? 25 : 40
+          let weight = 30
+          if (skill.effect === 'damage') {
+            weight = skill.damageMul >= 2.5 ? 10 : skill.damageMul >= 2 ? 15 : skill.damageMul >= 1.5 ? 25 : 35
+          } else if (skill.effect === 'stun') {
+            weight = 15
+          } else if (skill.effect === 'ignore') {
+            weight = 12
+          } else {
+            weight = 25
+          }
           weightedSkills.push({ skill, weight })
         }
       })
@@ -448,10 +461,23 @@ export class BattleEngine {
     const enemyStats = { strength: this.enemy.strength, agility: this.enemy.agility, speed: this.enemy.speed }
 
     const enemySkill = this.chooseEnemySkill()
-    let damage = CALC.damage(enemyStats, null, null)
+
+    if (enemySkill && enemySkill.effect === 'stun') {
+      this.player.status.stun(enemySkill.turns || 1)
+      this.addLog('control', `${this.enemy.name}发动【${enemySkill.name}】！${this.player.name}被黏住 ${enemySkill.turns || 1} 回合`, { source: this.enemy.name, target: this.player.name, skillName: enemySkill.name, value: enemySkill.turns })
+      return
+    }
+    if (enemySkill && enemySkill.effect === 'ignore') {
+      this.player.status.ignore(enemySkill.turns || 1)
+      this.addLog('control', `${this.enemy.name}发动【${enemySkill.name}】！${this.player.name}被忽略 ${enemySkill.turns || 1} 回合`, { source: this.enemy.name, target: this.player.name, skillName: enemySkill.name, value: enemySkill.turns })
+      return
+    }
+
+    const enemyWeapon = this.enemy.weapon
+    let damage = CALC.damage(enemyStats, enemyWeapon, null)
     let skillName = '拳打脚踢'
 
-    if (enemySkill) {
+    if (enemySkill && enemySkill.effect === 'damage') {
       const skillMul = enemySkill.damageMul || 1.0
       damage = Math.floor(damage * skillMul)
       skillName = enemySkill.name
@@ -466,9 +492,10 @@ export class BattleEngine {
     }
 
     const blockChance = this.player.skills.some(s => getSkillById(s.id)?.blockChance) ? 0.3 : 0.15
+    let blocked = false
     if (Math.random() < blockChance) {
       damage = Math.floor(damage * 0.5)
-      this.addLog('block', `${this.enemy.name}用【${skillName}】攻击！${this.player.name} 格挡了部分伤害！`, { source: this.enemy.name, target: this.player.name, skillName })
+      blocked = true
     }
 
     const defReduction = this.playerDamageReduction
@@ -488,7 +515,8 @@ export class BattleEngine {
     }
 
     this.player.health = Math.max(0, this.player.health - (Number.isFinite(damage) ? damage : 0))
-    this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}损失 ${damage} 点生命！`, { source: this.enemy.name, target: this.player.name, value: damage, skillName })
+    const blockText = blocked ? '格挡了部分伤害，' : ''
+    this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}${blockText}损失 ${damage} 点生命！`, { source: this.enemy.name, target: this.player.name, value: damage, skillName, blocked })
 
     if (Number.isFinite(damage) && damage > 0) {
       this.enemy.enemyTotalDamage += damage
