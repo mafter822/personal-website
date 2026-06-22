@@ -35,20 +35,22 @@ export const CALC = {
   comboRate: (agility) => Math.min(0.05 + agility * 0.0015, 0.25),
 
   damage: (attacker, weapon, skill) => {
+    const str = Number.isFinite(attacker.strength) ? attacker.strength : 0
     let baseDmg
     if (weapon) {
-      const min = weapon.baseDamage[0] ?? weapon.baseDamage
-      const max = weapon.baseDamage[1] ?? weapon.baseDamage
-      baseDmg = min + Math.random() * (max - min)
+      const min = weapon.baseDamage?.[0] ?? 0
+      const max = weapon.baseDamage?.[1] ?? min
+      baseDmg = min + Math.random() * Math.max(0, max - min)
     } else {
-      baseDmg = attacker.strength
+      baseDmg = str
     }
-    const strBonus = attacker.strength * 0.5
-    const skillMul = skill ? skill.damageMul || 1 : 1
-    const weaponBonus = weapon ? (weapon.enhanceLevel || 0) * 0.1 : 0
+    const strBonus = str * 0.3
+    const skillMul = Number.isFinite(skill?.damageMul) ? skill.damageMul : 1
+    const enhanceLvl = Number.isFinite(weapon?.enhanceLevel) ? weapon.enhanceLevel : 0
+    const weaponBonus = enhanceLvl * 0.1
     const raw = (baseDmg + strBonus) * skillMul * (1 + weaponBonus)
     const variance = 0.9 + Math.random() * 0.2
-    return Math.floor(raw * variance)
+    return Math.max(1, Math.floor(raw * variance))
   },
 
   reduceDamage: (defense, damage) => {

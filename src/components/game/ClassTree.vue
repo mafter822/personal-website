@@ -67,10 +67,11 @@
                 <button
                   v-if="!isSkillLocked(skill) && skillPoints > 0 && getSkillLevel(skill.id) < skill.maxLevel"
                   @click="allocateSkill(skill)"
-                  class="text-xs px-2 py-1 rounded bg-primary text-white hover:bg-primary-dark transition-colors"
+                  class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white text-xs font-bold hover:bg-primary-dark hover:scale-110 active:scale-95 transition-all shadow-sm"
                 >
-                  +1
+                  +
                 </button>
+                <span v-else-if="getSkillLevel(skill.id) >= skill.maxLevel" class="text-xs text-green-600 font-medium">已满级</span>
               </div>
             </div>
           </div>
@@ -127,6 +128,10 @@ function allocateSkill(skill) {
   if (skillPoints.value <= 0) return
   if (getSkillLevel(skill.id) >= skill.maxLevel) return
 
+  if (!state.classSkills) state.classSkills = {}
+  if (!state.classSkills[state.player.classId]) {
+    state.classSkills[state.player.classId] = { allocated: {} }
+  }
   const classSkills = state.classSkills[state.player.classId]
   if (!classSkills.allocated) classSkills.allocated = {}
   classSkills.allocated[skill.id] = (classSkills.allocated[skill.id] || 0) + 1

@@ -39,10 +39,10 @@ export class BattleEngine {
   }
 
   get playerCombatStats() {
-    let str = this.player.strength
-    let agi = this.player.agility
-    let spd = this.player.speed
-    let hp = this.player.maxHealth
+    let str = Number.isFinite(this.player.strength) ? this.player.strength : 0
+    let agi = Number.isFinite(this.player.agility) ? this.player.agility : 0
+    let spd = Number.isFinite(this.player.speed) ? this.player.speed : 0
+    let hp = Number.isFinite(this.player.maxHealth) ? this.player.maxHealth : 100
 
     // Apply class bonuses
     if (this.player.classId) {
@@ -285,7 +285,7 @@ export class BattleEngine {
       }
     }
 
-    this.enemy.health = Math.max(0, this.enemy.health - damage)
+    this.enemy.health = Math.max(0, this.enemy.health - (Number.isFinite(damage) ? damage : 0))
 
     if (skill) {
       this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`)
@@ -298,7 +298,7 @@ export class BattleEngine {
     } else {
       const counterChance = CALC.counterRate(this.enemy.agility)
       if (Math.random() < counterChance) {
-        const counterDmg = Math.floor(damage * 0.5)
+        const counterDmg = Math.floor((Number.isFinite(damage) ? damage : 0) * 0.5)
         this.player.health = Math.max(0, this.player.health - counterDmg)
         this.addLog('counter', `${this.enemy.name} 反击造成 ${counterDmg} 伤害！`)
       }
@@ -311,7 +311,7 @@ export class BattleEngine {
     if (drainSkill) {
       const sk = getSkillById(drainSkill.id)
       if (Math.random() < sk.lifesteal) {
-        const healed = Math.floor(damage * 0.5)
+        const healed = Math.floor((Number.isFinite(damage) ? damage : 0) * 0.5)
         this.player.health = Math.min(this.playerCombatStats.maxHealth, this.player.health + healed)
         this.addLog('heal', `嗜血触发，恢复 ${healed} 生命`)
       }
@@ -319,11 +319,11 @@ export class BattleEngine {
   }
 
   executeHealSkill(skill) {
-    const healAmount = Math.max(25, Math.floor(this.playerCombatStats.maxHealth * skill.healPercent))
+    const healAmount = Math.max(25, Math.floor(this.playerCombatStats.maxHealth * (skill.healPercent || 0.25)))
     this.player.health = Math.min(this.playerCombatStats.maxHealth, this.player.health + healAmount)
     this.addLog('heal', `矿泉水恢复 ${healAmount} 生命`)
 
-    const damage = skill.fixedDamage + this.playerCombatStats.agility * 0.2
+    const damage = (skill.fixedDamage || 0) + this.playerCombatStats.agility * 0.2
     this.enemy.health = Math.max(0, this.enemy.health - Math.floor(damage))
     this.addLog('attack', `造成 ${Math.floor(damage)} 伤害`)
   }
@@ -438,13 +438,13 @@ export class BattleEngine {
     if (reboundSkill) {
       const sk = getSkillById(reboundSkill.id)
       if (Math.random() < sk.reboundChance) {
-        const reboundDmg = Math.floor(damage * sk.reboundDamage)
+        const reboundDmg = Math.floor((Number.isFinite(damage) ? damage : 0) * (sk.reboundDamage || 0.5))
         this.enemy.health = Math.max(0, this.enemy.health - reboundDmg)
         this.addLog('rebound', `大海无量！反弹 ${reboundDmg} 伤害`)
       }
     }
 
-    this.player.health = Math.max(0, this.player.health - damage)
+    this.player.health = Math.max(0, this.player.health - (Number.isFinite(damage) ? damage : 0))
     this.addLog('enemy_attack', `${this.enemy.name}用【${skillName}】攻击！${this.player.name}损失 ${damage} 点生命！`)
 
     if (this.player.health <= 0) {

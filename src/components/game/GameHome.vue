@@ -90,28 +90,6 @@
       </div>
     </div>
 
-    <!-- Equipped Weapon -->
-    <div class="card p-4">
-      <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
-        <span>🗡️</span> 装备武器
-      </h3>
-      <div v-if="equippedWeapon" class="flex items-center justify-between p-3 bg-bg-card rounded-lg">
-        <div class="flex items-center gap-3">
-          <span class="w-4 h-4 rounded-full" :style="{ backgroundColor: qualityColor }"></span>
-          <div>
-            <div class="font-medium" :style="{ color: qualityColor }">{{ equippedWeapon.name }}</div>
-            <div class="text-xs text-text-secondary">{{ weaponDamageRange }} · {{ weaponSpecial }}</div>
-          </div>
-        </div>
-        <span class="text-xs px-2 py-1 rounded font-medium" :style="{ backgroundColor: qualityColor + '20', color: qualityColor }">
-          +{{ equippedWeapon.enhanceLevel }}
-        </span>
-      </div>
-      <div v-else class="text-center text-text-muted text-sm py-4">
-        暂未装备武器
-      </div>
-    </div>
-
     <!-- Skills -->
     <div class="card p-4">
       <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
@@ -164,7 +142,6 @@
 import { computed } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { EXP_PER_LEVEL } from '../../game/data/constants.js'
-import { QUALITY_COLORS } from '../../game/data/constants.js'
 import { getSkillById } from '../../game/data/skills.js'
 import { WEAPON_QUALITY } from '../../game/data/weapons.js'
 
@@ -184,32 +161,6 @@ const combatPower = computed(() => {
 })
 
 const equippedWeapon = computed(() => getEquippedWeapon())
-const qualityColor = computed(() => {
-  if (!equippedWeapon.value) return '#9ca3af'
-  return QUALITY_COLORS[equippedWeapon.value.quality] || '#9ca3af'
-})
-
-const weaponDamageRange = computed(() => {
-  if (!equippedWeapon.value) return ''
-  const w = equippedWeapon.value
-  const bonus = (w.enhanceLevel || 0) * 0.1
-  return `${Math.floor(w.baseDamage[0] * (1 + bonus))} ~ ${Math.floor(w.baseDamage[1] * (1 + bonus))}`
-})
-
-const weaponSpecial = computed(() => {
-  if (!equippedWeapon.value || !equippedWeapon.value.special) return '无特效'
-  const s = equippedWeapon.value.special
-  const map = {
-    combo: `连击${Math.round(s.chance * 100)}%`,
-    stun: `眩晕${Math.round(s.chance * 100)}%`,
-    crit: `暴击${Math.round(s.chance * 100)}%`,
-    sureHit: '必中',
-    noRest: '无需休息',
-    ignoreUndying: '忽略装死',
-    dodgeCounter: '闪避反击',
-  }
-  return map[s.type] || s.type
-})
 
 function getSkillName(id) {
   const skill = getSkillById(id)

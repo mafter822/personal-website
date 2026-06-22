@@ -47,6 +47,7 @@ function getDefaultState() {
     stagesCleared: [],
     towerProgress: { maxFloor: 0, dailyUsed: 0, lastResetDate: null },
     streakStatus: 'normal',
+    classSkills: {},
     stats: {
       wins: 0,
       losses: 0,
@@ -86,6 +87,7 @@ function loadGame() {
     if (data.skills) gameState.skills = data.skills
     if (data.weapons) gameState.weapons = data.weapons
     if (data.equippedWeapon) gameState.equippedWeapon = data.equippedWeapon
+    if (data.classSkills) gameState.classSkills = data.classSkills
     if (data.stagesCleared) gameState.stagesCleared = data.stagesCleared
 
     migrateEquipmentFromWeapons()
@@ -117,6 +119,7 @@ function resetGame() {
   gameState.skills = []
   gameState.weapons = []
   gameState.equippedWeapon = null
+  gameState.classSkills = {}
   gameState.stagesCleared = []
   gameState.towerProgress = { maxFloor: 0, dailyUsed: 0, lastResetDate: null }
 }
@@ -396,7 +399,7 @@ function getCombatStats() {
 
   gameState.skills.forEach(skill => {
     if (skill.statBonus) {
-      const amount = skill.statBonus.amount * skill.level
+      const amount = (skill.statBonus.amount || 0) * (skill.level || 0)
       if (skill.statBonus.stat === 'strength') bonusStr += amount
       if (skill.statBonus.stat === 'agility') bonusAgi += amount
       if (skill.statBonus.stat === 'speed') bonusSpd += amount
@@ -404,11 +407,16 @@ function getCombatStats() {
     }
   })
 
+  const baseStr = Number.isFinite(player.strength) ? player.strength : 0
+  const baseAgi = Number.isFinite(player.agility) ? player.agility : 0
+  const baseSpd = Number.isFinite(player.speed) ? player.speed : 0
+  const baseHp = Number.isFinite(player.maxHealth) ? player.maxHealth : 100
+
   return {
-    strength: player.strength + bonusStr,
-    agility: player.agility + bonusAgi,
-    speed: player.speed + bonusSpd,
-    maxHealth: player.maxHealth + bonusHp,
+    strength: baseStr + bonusStr,
+    agility: baseAgi + bonusAgi,
+    speed: baseSpd + bonusSpd,
+    maxHealth: baseHp + bonusHp,
   }
 }
 
