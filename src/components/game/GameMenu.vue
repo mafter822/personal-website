@@ -71,6 +71,7 @@ const allTabs = [
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
   { id: 'dummy', icon: '🎯', label: '木桩' },
+  { id: 'gm', icon: '🔧', label: 'GM' },
 ]
 
 function handleReset() {

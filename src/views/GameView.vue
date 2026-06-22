@@ -42,6 +42,7 @@
         <ShopPanel v-else-if="activeTab === 'shop'" />
         <AchievementPanel v-else-if="activeTab === 'achievements'" />
         <DummyPanel v-else-if="activeTab === 'dummy'" />
+        <GMPanel v-else-if="activeTab === 'gm'" />
         <GameMenu v-else-if="activeTab === 'menu'" />
       </div>
     </div>
@@ -64,6 +65,7 @@ import RankingPanel from '../components/game/RankingPanel.vue'
 import RealmPanel from '../components/game/RealmPanel.vue'
 import AchievementPanel from '../components/game/AchievementPanel.vue'
 import DummyPanel from '../components/game/DummyPanel.vue'
+import GMPanel from '../components/game/GMPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 import Toast from '../components/game/Toast.vue'
 
@@ -99,6 +101,7 @@ const allTabs = [
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
   { id: 'dummy', icon: '🎯', label: '木桩' },
+  { id: 'gm', icon: '🔧', label: 'GM' },
   { id: 'menu', icon: '⚙️', label: '设置' },
 ]
 

@@ -38,6 +38,7 @@ function getDefaultState() {
         shop: true,
         achievements: true,
         dummy: true,
+        gm: true,
         menu: true,
       },
     },
