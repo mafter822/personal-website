@@ -72,7 +72,7 @@ export const SKILLS = [
     weights: [0, 0, 0, 0, 0, 0, 0.6, 0.7] },
 
   // T3 恢复/特殊
-  { id: 'spc_heal', name: '矿泉水', category: 'special', icon: '🧴', maxLevel: 5, tier: 'T3', healPercent: 0.25, fixedDamage: 15, desc: '恢复25%生命（至少25点），立即攻击造成15点', spiritCost: 2, unlockLevel: 5,
+  { id: 'spc_heal', name: '矿泉水', category: 'special', icon: '🧴', maxLevel: 5, tier: 'T3', effect: 'heal', healPercent: 0.25, fixedDamage: 15, desc: '恢复25%生命（至少25点），立即攻击造成15点', spiritCost: 2, unlockLevel: 5,
     weights: [0, 4.7, 4.0, 2.9, 1.9, 1.3, 0.7, 0.4] },
   { id: 'ctrl_glue', name: '胶水', category: 'control', icon: '💧', maxLevel: 1, tier: 'T3', effect: 'stun', turns: 3, desc: '100%命中，黏住对方3回合无法行动', spiritCost: 2, unlockLevel: 10,
     weights: [0, 0, 2.5, 2.6, 2.2, 1.8, 1.3, 0.7] },
