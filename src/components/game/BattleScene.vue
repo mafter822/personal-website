@@ -296,6 +296,8 @@ async function startAutoBattle() {
 
     if (engine.isOver) break
 
+    engine.startNextTurn()
+
     if (round < 50) {
       currentRound.value = round + 1
       addLog('round_start', '', { round: round + 1 })

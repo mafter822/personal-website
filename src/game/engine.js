@@ -179,6 +179,10 @@ export class BattleEngine {
     this.processStun(this.player)
     this.processIgnore(this.player)
     this.processRest(this.player)
+    this.processStun(this.enemy)
+    this.processIgnore(this.enemy)
+    this.processBuffs(this.enemy)
+    this.processDebuffs(this.enemy)
   }
 
   processBuffs(unit) {
