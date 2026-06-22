@@ -90,18 +90,29 @@ function matchOpponent() {
   const spdBase = 10 + enemyLevel * 2
   const hpBase = 80 + enemyLevel * 15
 
-  const availableWeapons = WEAPONS.filter(w => w.reqLevel <= Math.max(enemyLevel, playerLevel))
-  const weapon = availableWeapons.length > 0 ? randomFrom(availableWeapons) : null
+  const ownedSkillIds = []
+  const ownedWeaponIds = []
+  let enemyWeapon = null
 
-  const availableSkills = SKILLS.filter(s => s.unlockLevel <= Math.max(enemyLevel, playerLevel) && s.category !== 'stat')
-  const skillCount = Math.min(4 + Math.floor(enemyLevel / 8), availableSkills.length)
-  const skills = []
-  const pool = [...availableSkills]
-  for (let i = 0; i < skillCount && pool.length > 0; i++) {
-    const idx = Math.floor(Math.random() * pool.length)
-    skills.push({ id: pool[idx].id, level: 1 + Math.floor(Math.random() * 3) })
-    pool.splice(idx, 1)
+  for (let lv = 2; lv <= enemyLevel; lv += 2) {
+    const roll = Math.random()
+    if (roll < 0.5) {
+      const pool = SKILLS.filter(s => s.unlockLevel <= lv && s.category !== 'stat' && !ownedSkillIds.includes(s.id))
+      if (pool.length > 0) {
+        const picked = randomFrom(pool)
+        ownedSkillIds.push(picked.id)
+      }
+    } else {
+      const pool = WEAPONS.filter(w => w.reqLevel <= lv && !ownedWeaponIds.includes(w.id))
+      if (pool.length > 0) {
+        const picked = randomFrom(pool)
+        ownedWeaponIds.push(picked.id)
+        if (!enemyWeapon) enemyWeapon = { ...picked }
+      }
+    }
   }
+
+  const skills = ownedSkillIds.map(id => ({ id, level: 1 + Math.floor(Math.random() * 3) }))
 
   const name = generateNPCName()
 
@@ -114,8 +125,8 @@ function matchOpponent() {
     speed: spdBase + Math.floor(Math.random() * 8),
     maxHealth: hpBase + Math.floor(Math.random() * 30),
     health: hpBase + Math.floor(Math.random() * 30),
-    weapon,
-    weaponName: weapon ? weapon.name : '拳头',
+    weapon: enemyWeapon,
+    weaponName: enemyWeapon ? enemyWeapon.name : '拳头',
     skills,
     skillCount: skills.length,
     rewards: { exp: 50 + enemyLevel * 10, spirit: 1 + Math.floor(enemyLevel / 10) },
