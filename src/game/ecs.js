@@ -59,6 +59,8 @@ export class Fighter {
   get weapon() { return this.actions.weapon }
   set weapon(v) { this.actions.weapon = v }
 
+  get allWeapons() { return this.actions.allWeapons }
+
   get skills() { return this.actions.skills }
   set skills(v) { this.actions.skills = v }
 
@@ -94,6 +96,7 @@ export class ActionComponent {
   constructor(config) {
     this.weapon = config.weapon || null
     this.skills = config.skills || []
+    this.allWeapons = config.allWeapons || []
     this.usedActiveSkills = new Set()
     this.critCounter = 0
     this.dodgeCounter = 0

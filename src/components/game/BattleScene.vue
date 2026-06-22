@@ -244,7 +244,8 @@ async function startAutoBattle() {
     state.player,
     props.enemy,
     state.skills,
-    weapon
+    weapon,
+    state.weapons
   )
   engine.start()
 

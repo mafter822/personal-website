@@ -5,11 +5,12 @@ import { generateNPCName } from './data/pets.js'
 import { Fighter } from './ecs.js'
 
 export class BattleEngine {
-  constructor(playerConfig, enemyConfig, playerSkills, equippedWeapon) {
+  constructor(playerConfig, enemyConfig, playerSkills, equippedWeapon, allWeapons) {
     this.player = new Fighter({
       ...playerConfig,
       skills: playerSkills,
       weapon: equippedWeapon,
+      allWeapons: allWeapons || [],
     })
     const enemyName = enemyConfig.name || generateNPCName()
     this.enemy = new Fighter({
@@ -257,6 +258,15 @@ export class BattleEngine {
     } else if (skill && skill.effect === 'haste') {
       this.executeHasteSkill(skill)
       this.player.usedActiveSkills.add(skillId)
+    } else if (skill && skill.effect === 'multiAttack') {
+      this.executeMultiAttack(skill)
+      this.player.usedActiveSkills.add(skillId)
+    } else if (skill && skill.hpPercent) {
+      this.executeHpPercentAttack(skill)
+      this.player.usedActiveSkills.add(skillId)
+    } else if (skill && skill.instakillChance) {
+      this.executeInstakill(skill)
+      this.player.usedActiveSkills.add(skillId)
     } else {
       this.executeAttack(skill)
     }
@@ -413,6 +423,61 @@ export class BattleEngine {
       damageBonus: skill.damageBonus,
     })
     this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`, { source: this.player.name, skillName: skill.name, value: skill.turns })
+  }
+
+  executeMultiAttack(skill) {
+    const stats = this.playerCombatStats
+    const allWeapons = this.player.allWeapons || []
+    const throwCount = Math.min(3, allWeapons.length)
+    if (throwCount === 0) {
+      this.executeAttack(skill)
+      return
+    }
+    const thrown = []
+    const pool = [...allWeapons]
+    for (let i = 0; i < throwCount; i++) {
+      const idx = Math.floor(Math.random() * pool.length)
+      thrown.push(pool[idx])
+      pool.splice(idx, 1)
+    }
+    let totalDamage = 0
+    thrown.forEach(w => {
+      const min = w.baseDamage?.[0] ?? 10
+      const max = w.baseDamage?.[1] ?? min
+      const baseDmg = min + Math.random() * Math.max(0, max - min)
+      const strBonus = stats.strength * 0.3
+      const enhanceLvl = Number.isFinite(w.enhanceLevel) ? w.enhanceLevel : 0
+      const raw = (baseDmg + strBonus) * (1 + enhanceLvl * 0.1)
+      const variance = 0.9 + Math.random() * 0.2
+      const dmg = Math.max(1, Math.floor(raw * variance))
+      totalDamage += dmg
+      this.addLog('attack', `投掷【${w.name}】！造成 ${dmg} 伤害`, { source: this.player.name, target: this.enemy.name, value: dmg, weaponName: w.name })
+    })
+    this.enemy.health = Math.max(0, this.enemy.health - totalDamage)
+    this.player.stats.totalDamage += totalDamage
+    this.player.stats.hits++
+    if (totalDamage > this.player.stats.maxHit) this.player.stats.maxHit = totalDamage
+    this.addLog('attack', `${this.player.name}发动【${skill.name}】！投掷 ${throwCount} 把武器，共造成 ${totalDamage} 伤害`, { source: this.player.name, target: this.enemy.name, value: totalDamage, skillName: skill.name })
+  }
+
+  executeHpPercentAttack(skill) {
+    const damage = Math.floor(this.enemy.health * 0.5)
+    this.enemy.health = Math.max(0, this.enemy.health - damage)
+    this.player.stats.totalDamage += damage
+    this.player.stats.hits++
+    if (damage > this.player.stats.maxHit) this.player.stats.maxHit = damage
+    this.addLog('attack', `${this.player.name}发动【${skill.name}】！打掉${this.enemy.name}一半生命，造成 ${damage} 伤害`, { source: this.player.name, target: this.enemy.name, value: damage, skillName: skill.name })
+  }
+
+  executeInstakill(skill) {
+    if (Math.random() < skill.instakillChance) {
+      this.enemy.health = 1
+      this.player.stats.totalDamage += this.enemy.maxHealth - 1
+      this.player.stats.hits++
+      this.addLog('attack', `${this.player.name}发动【${skill.name}】！一击必杀！${this.enemy.name}生命降至1点`, { source: this.player.name, target: this.enemy.name, value: this.enemy.maxHealth - 1, skillName: skill.name })
+    } else {
+      this.executeAttack(skill)
+    }
   }
 
   enemyTurn() {
