@@ -52,7 +52,7 @@
     </div>
 
     <!-- Battle -->
-    <div v-if="running" class="card p-4">
+    <div v-if="running || displayLogs.length > 0" class="card p-4">
       <div class="flex items-center justify-between mb-4">
         <div>
           <div class="font-medium">🎯 {{ dummyName }}</div>
