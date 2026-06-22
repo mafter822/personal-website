@@ -30,7 +30,7 @@
 import { ref, onMounted } from 'vue'
 
 const loaded = ref(false)
-const evolveUrl = 'https://mafter822.github.io/Evolve/'
+const evolveUrl = './evolve/index.html'
 
 onMounted(() => {
   const img = new Image()

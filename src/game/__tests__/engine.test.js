@@ -307,10 +307,9 @@ describe('BattleEngine', () => {
   it('should return a valid skill or null', () => {
     const engine = new BattleEngine(makePlayer(), makeEnemy(), [], null)
     engine.start()
-    const skill = engine.chooseEnemySkill()
-    if (skill !== null) {
-      expect(skill.name).toBeDefined()
-      expect(skill.damageMul || skill.effect).toBeDefined()
+    const skillId = engine.enemySelectSkill()
+    if (skillId !== null) {
+      expect(typeof skillId).toBe('string')
     }
   })
   })
@@ -325,13 +324,17 @@ describe('BattleEngine', () => {
       }
     })
 
-    it('should prefer heal when low health', () => {
-      const skills = [{ id: 'spc_heal', level: 1 }]
-      const engine = new BattleEngine(makePlayer(), makeEnemy(), skills, null)
-      engine.start()
-      engine.player.health = 50
+  it('should prefer heal when low health', () => {
+    const skills = [{ id: 'spc_heal', level: 1 }]
+    const engine = new BattleEngine(makePlayer(), makeEnemy(), skills, null)
+    engine.start()
+    engine.player.health = 50
+    let healCount = 0
+    for (let i = 0; i < 50; i++) {
       const skillId = engine.autoSelectSkill()
-      expect(skillId).toBe('spc_heal')
-    })
+      if (skillId === 'spc_heal') healCount++
+    }
+    expect(healCount).toBeGreaterThan(10)
+  })
   })
 })

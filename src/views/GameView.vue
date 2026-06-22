@@ -25,7 +25,7 @@
 
       <div>
         <GameHome v-if="activeTab === 'home'" />
-        <StageSelect v-else-if="activeTab === 'stage'" @start-battle="startBattle" />
+        <RandomBattle v-else-if="activeTab === 'stage'" @start-battle="startBattle" />
         <BattleScene
           v-else-if="activeTab === 'battle'"
           :enemy="battleEnemy"
@@ -53,7 +53,7 @@
 import { ref, computed, provide } from 'vue'
 import { gameStore } from '../game/store.js'
 import GameHome from '../components/game/GameHome.vue'
-import StageSelect from '../components/game/StageSelect.vue'
+import RandomBattle from '../components/game/RandomBattle.vue'
 import BattleScene from '../components/game/BattleScene.vue'
 import SkillBook from '../components/game/SkillBook.vue'
 import WeaponBook from '../components/game/WeaponBook.vue'

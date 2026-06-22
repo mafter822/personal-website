@@ -1,7 +1,7 @@
 import { CALC, SPIRIT_PER_WIN, ENERGY_PER_ATTACK, ENERGY_PER_HIT, ENERGY_MAX } from './data/constants.js'
 import { getSkillById } from './data/skills.js'
 import { CLASSES } from './data/classes.js'
-import { NPC_SKILLS, generateNPCName } from './data/pets.js'
+import { generateNPCName } from './data/pets.js'
 import { Fighter } from './ecs.js'
 
 export class BattleEngine {
@@ -114,33 +114,32 @@ export class BattleEngine {
     this.addLog('battle_start', `战斗开始！vs ${this.enemy.name} Lv.${this.enemy.level}`)
   }
 
-  autoSelectSkill() {
-    const hpPercent = this.player.health / this.playerCombatStats.maxHealth
-    const enemyHpPercent = this.enemy.health / this.enemy.maxHealth
-
+  selectSkillFor(unit, opponent) {
     const passiveEffects = new Set(['undying', 'lifesteal', 'combo', 'dodgeBonus', 'blockChance', 'counterChance', 'reboundChance', 'damageReduce', 'statBonus', 'weaponDamageBonus', 'damageBonus'])
 
-    const availableSkills = this.player.skills
+    const availableSkills = unit.skills
       .map(s => getSkillById(s.id))
       .filter(s => {
         if (!s) return false
         if (s.category !== 'attack' && s.category !== 'control' && s.category !== 'special') return false
         if (s.effect && passiveEffects.has(s.effect)) return false
-        if (s.effect && this.player.usedActiveSkills.has(s.effect)) return false
+        if (s.effect && unit.usedActiveSkills.has(s.effect)) return false
         return true
       })
 
-    if (this.player.energy >= ENERGY_MAX) {
+    if (unit.energy >= ENERGY_MAX) {
       const ultimateSkill = availableSkills.find(s => s.energyCost && s.energyCost >= ENERGY_MAX)
       if (ultimateSkill) {
-        this.player.energy = 0
-        this.addLog('ultimate', `${this.player.name} 释放终结技【${ultimateSkill.name}】！`, { source: this.player.name, skillName: ultimateSkill.name })
+        unit.energy = 0
+        this.addLog('ultimate', `${unit.name} 释放终结技【${ultimateSkill.name}】！`, { source: unit.name, skillName: ultimateSkill.name })
         return ultimateSkill.id
       }
     }
 
-    const candidates = []
+    const hpPercent = unit.health / unit.maxHealth
+    const opponentHpPercent = opponent.health / opponent.maxHealth
 
+    const candidates = []
     candidates.push({ id: null, weight: 40 })
 
     availableSkills.forEach(s => {
@@ -166,6 +165,14 @@ export class BattleEngine {
       if (roll <= 0) return c.id
     }
     return candidates[candidates.length - 1].id
+  }
+
+  autoSelectSkill() {
+    return this.selectSkillFor(this.player, this.enemy)
+  }
+
+  enemySelectSkill() {
+    return this.selectSkillFor(this.enemy, this.player)
   }
 
   startNextTurn() {
@@ -408,39 +415,6 @@ export class BattleEngine {
     this.addLog('buff', `${this.player.name}发动【${skill.name}】！速度+${Math.round(skill.speedBonus * 100)}%，持续 ${skill.turns} 回合`, { source: this.player.name, skillName: skill.name, value: skill.turns })
   }
 
-  chooseEnemySkill() {
-    try {
-      if (!this.enemy.skills || this.enemy.skills.length === 0) return null
-      
-      const candidates = []
-
-      candidates.push({ skill: null, weight: 35 })
-
-      this.enemy.skills.forEach(skillId => {
-        const skill = NPC_SKILLS[skillId]
-        if (skill && skillId !== 'basic_attack') {
-          let weight = 20
-          if (skill.effect === 'stun' || skill.effect === 'ignore') {
-            weight = 12
-          } else if (skill.effect === 'damage') {
-            weight = skill.damageMul >= 2.5 ? 15 : skill.damageMul >= 2 ? 20 : skill.damageMul >= 1.5 ? 25 : 30
-          }
-          candidates.push({ skill, weight })
-        }
-      })
-
-      if (candidates.length === 0) return null
-
-      const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0)
-      let roll = Math.random() * totalWeight
-      for (const c of candidates) {
-        roll -= c.weight
-        if (roll <= 0) return c.skill
-      }
-      return candidates[candidates.length - 1].skill
-    } catch { return null }
-  }
-
   enemyTurn() {
     if (this.isOver) return
 
@@ -460,7 +434,7 @@ export class BattleEngine {
     const stats = this.playerCombatStats
     const enemyStats = { strength: this.enemy.strength, agility: this.enemy.agility, speed: this.enemy.speed }
 
-    const enemySkill = this.chooseEnemySkill()
+    const enemySkill = this.enemySelectSkill()
 
     if (enemySkill && enemySkill.effect === 'stun') {
       this.player.status.stun(enemySkill.turns || 1)
@@ -470,6 +444,12 @@ export class BattleEngine {
     if (enemySkill && enemySkill.effect === 'ignore') {
       this.player.status.ignore(enemySkill.turns || 1)
       this.addLog('control', `${this.enemy.name}发动【${enemySkill.name}】！${this.player.name}被忽略 ${enemySkill.turns || 1} 回合`, { source: this.enemy.name, target: this.player.name, skillName: enemySkill.name, value: enemySkill.turns })
+      return
+    }
+    if (enemySkill && enemySkill.effect === 'heal') {
+      const healAmount = Math.max(25, Math.floor(this.enemy.maxHealth * (enemySkill.healPercent || 0.25)))
+      this.enemy.health = Math.min(this.enemy.maxHealth, this.enemy.health + healAmount)
+      this.addLog('heal', `${this.enemy.name}发动【${enemySkill.name}】恢复 ${healAmount} 生命`, { source: this.enemy.name, value: healAmount, skillName: enemySkill.name })
       return
     }
 
