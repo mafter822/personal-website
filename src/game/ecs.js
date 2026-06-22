@@ -10,6 +10,7 @@ export class Fighter {
     this.level = config.level || 1
     this.dodgeRate = config.dodgeRate ?? null
     this.blockRate = config.blockRate ?? null
+    this.rewards = config.rewards || { exp: 50, spirit: 1 }
 
     this.attributes = new AttributeComponent(config)
     this.actions = new ActionComponent(config)
