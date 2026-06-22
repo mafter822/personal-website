@@ -41,6 +41,7 @@
         <TowerScene v-else-if="activeTab === 'tower'" @start-battle="startBattle" />
         <ShopPanel v-else-if="activeTab === 'shop'" />
         <AchievementPanel v-else-if="activeTab === 'achievements'" />
+        <DummyPanel v-else-if="activeTab === 'dummy'" />
         <GameMenu v-else-if="activeTab === 'menu'" />
       </div>
     </div>
@@ -63,6 +64,7 @@ import FriendList from '../components/game/FriendList.vue'
 import RankingPanel from '../components/game/RankingPanel.vue'
 import RealmPanel from '../components/game/RealmPanel.vue'
 import AchievementPanel from '../components/game/AchievementPanel.vue'
+import DummyPanel from '../components/game/DummyPanel.vue'
 import GameMenu from '../components/game/GameMenu.vue'
 import Toast from '../components/game/Toast.vue'
 
@@ -97,6 +99,7 @@ const allTabs = [
   { id: 'weapons', icon: '🗡️', label: '武器' },
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
+  { id: 'dummy', icon: '🎯', label: '木桩' },
   { id: 'menu', icon: '⚙️', label: '设置' },
 ]
 

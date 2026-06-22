@@ -37,6 +37,7 @@ function getDefaultState() {
         weapons: true,
         shop: true,
         achievements: true,
+        dummy: true,
         menu: true,
       },
     },

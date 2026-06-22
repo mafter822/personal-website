@@ -70,6 +70,7 @@ const allTabs = [
   { id: 'weapons', icon: '🗡️', label: '武器' },
   { id: 'shop', icon: '🛒', label: '商城' },
   { id: 'achievements', icon: '🏅', label: '成就' },
+  { id: 'dummy', icon: '🎯', label: '木桩' },
 ]
 
 function handleReset() {

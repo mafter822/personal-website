@@ -23,7 +23,7 @@ export class BattleEngine {
     }
     this.enemy = {
       ...enemy,
-      maxHealth: enemy.health,
+      maxHealth: enemy.maxHealth || enemy.health,
       skills: enemy.skills || ['basic_attack'],
       buffs: [],
       debuffs: [],
@@ -36,6 +36,7 @@ export class BattleEngine {
     this.isOver = false
     this.winner = null
     this.rewards = null
+    this.stats = { totalDamage: 0, crits: 0, maxHit: 0, hits: 0, misses: 0, kills: 0 }
   }
 
   get playerCombatStats() {
@@ -270,19 +271,25 @@ export class BattleEngine {
     }
 
     const critChance = CALC.critRate(stats.agility)
-    if (Math.random() < critChance) {
+    const isCrit = Math.random() < critChance
+    if (isCrit) {
       damage = Math.floor(damage * 1.5)
       this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`)
     }
 
-    const dodgeChance = CALC.dodgeRate(this.enemy.agility, this.enemy.speed)
-    if (Math.random() < dodgeChance) {
+    const enemyDodge = this.enemy.isDummy
+      ? (this.enemy.dodgeRate || 0)
+      : CALC.dodgeRate(this.enemy.agility, this.enemy.speed)
+    if (Math.random() < enemyDodge) {
       this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`)
+      this.stats.misses++
       return
     }
 
     if (!this.player.isIgnored) {
-      const blockChance = CALC.blockRate()
+      const blockChance = this.enemy.isDummy
+        ? (this.enemy.blockRate || 0)
+        : CALC.blockRate()
       if (Math.random() < blockChance) {
         damage = Math.floor(damage * 0.5)
         this.addLog('block', `${this.enemy.name} 格挡了部分伤害！`)
@@ -290,6 +297,13 @@ export class BattleEngine {
     }
 
     this.enemy.health = Math.max(0, this.enemy.health - (Number.isFinite(damage) ? damage : 0))
+
+    if (Number.isFinite(damage) && damage > 0) {
+      this.stats.totalDamage += damage
+      this.stats.hits++
+      if (damage > this.stats.maxHit) this.stats.maxHit = damage
+      if (isCrit) this.stats.crits++
+    }
 
     if (skill) {
       this.addLog('attack', `${this.player.name}发动【${skill.name}】！${this.enemy.name}损失 ${damage} 点生命！`)
@@ -398,6 +412,11 @@ export class BattleEngine {
   enemyTurn() {
     if (this.isOver) return
 
+    if (this.enemy.isDummy) {
+      this.addLog('stun', `${this.enemy.name} 没有反击...`)
+      return
+    }
+
     if (this.enemy.isStunned) {
       this.addLog('stun', `${this.enemy.name} 被黏住了，无法行动！`)
       return
@@ -468,6 +487,12 @@ export class BattleEngine {
 
   checkBattleEnd() {
     if (this.enemy.health <= 0) {
+      if (this.enemy.isDummy) {
+        this.stats.kills++
+        this.enemy.health = this.enemy.maxHealth
+        this.addLog('heal', `${this.enemy.name} 血量回满！累计击杀 ${this.stats.kills} 次`)
+        return
+      }
       this.endBattle(true)
     } else if (this.player.health <= 0) {
       this.endBattle(false)
@@ -487,5 +512,9 @@ export class BattleEngine {
 
   addLog(type, message) {
     this.log.push({ turn: this.turn, type, message, timestamp: Date.now() })
+  }
+
+  getStats() {
+    return { ...this.stats }
   }
 }
