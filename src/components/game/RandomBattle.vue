@@ -90,11 +90,11 @@ function matchOpponent() {
   const spdBase = 10 + enemyLevel * 2
   const hpBase = 80 + enemyLevel * 15
 
-  const availableWeapons = WEAPONS.filter(w => w.reqLevel <= enemyLevel)
+  const availableWeapons = WEAPONS.filter(w => w.reqLevel <= Math.max(enemyLevel, playerLevel))
   const weapon = availableWeapons.length > 0 ? randomFrom(availableWeapons) : null
 
-  const availableSkills = SKILLS.filter(s => s.unlockLevel <= enemyLevel && s.category !== 'stat')
-  const skillCount = Math.min(3 + Math.floor(enemyLevel / 10), availableSkills.length)
+  const availableSkills = SKILLS.filter(s => s.unlockLevel <= Math.max(enemyLevel, playerLevel) && s.category !== 'stat')
+  const skillCount = Math.min(4 + Math.floor(enemyLevel / 8), availableSkills.length)
   const skills = []
   const pool = [...availableSkills]
   for (let i = 0; i < skillCount && pool.length > 0; i++) {
