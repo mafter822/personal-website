@@ -111,7 +111,7 @@
     <!-- Game Section -->
     <section class="py-16 px-6">
       <div class="max-w-4xl mx-auto">
-        <h2 class="text-4xl font-bold heading-italic text-center mb-12">{{ t('nav.games') || '游戏' }}</h2>
+        <h2 class="text-4xl font-bold heading-italic text-center mb-12">游戏</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <router-link to="/game" class="inline-block card p-8 hover:shadow-lg transition-all group cursor-pointer text-center">
             <div class="text-6xl mb-4 group-hover:scale-110 transition-transform">🐧</div>
