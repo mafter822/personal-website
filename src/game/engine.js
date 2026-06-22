@@ -130,8 +130,6 @@ export class BattleEngine {
         return true
       })
 
-    if (availableSkills.length === 0) return null
-
     if (this.player.energy >= ENERGY_MAX) {
       const ultimateSkill = availableSkills.find(s => s.energyCost && s.energyCost >= ENERGY_MAX)
       if (ultimateSkill) {
@@ -141,27 +139,33 @@ export class BattleEngine {
       }
     }
 
-    if (hpPercent < 0.3) {
-      const healSkill = availableSkills.find(s => s.effect === 'heal')
-      if (healSkill) return healSkill.id
-    }
+    const candidates = []
 
-    if (enemyHpPercent < 0.2) {
-      const controlSkill = availableSkills.find(s => s.effect === 'stun' || s.effect === 'disarm')
-      if (controlSkill) return controlSkill.id
-    }
+    candidates.push({ id: null, weight: 40 })
 
-    const highDamageSkills = availableSkills.filter(s => s.damageMul && s.damageMul >= 1.5)
-    if (highDamageSkills.length > 0 && Math.random() < 0.6) {
-      return highDamageSkills[Math.floor(Math.random() * highDamageSkills.length)].id
-    }
+    availableSkills.forEach(s => {
+      let weight = 30
+      if (s.effect === 'heal') {
+        weight = hpPercent < 0.3 ? 50 : 15
+      } else if (s.effect === 'stun' || s.effect === 'disarm' || s.effect === 'ignore') {
+        weight = 20
+      } else if (s.damageMul) {
+        weight = s.damageMul >= 2 ? 35 : s.damageMul >= 1.5 ? 30 : 25
+      } else {
+        weight = 20
+      }
+      candidates.push({ id: s.id, weight })
+    })
 
-    if (Math.random() < 0.3) {
-      const controlSkill = availableSkills.find(s => s.effect === 'stun' || s.effect === 'disarm' || s.effect === 'ignore')
-      if (controlSkill) return controlSkill.id
-    }
+    if (candidates.length === 0) return null
 
-    return availableSkills[Math.floor(Math.random() * availableSkills.length)].id
+    const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0)
+    let roll = Math.random() * totalWeight
+    for (const c of candidates) {
+      roll -= c.weight
+      if (roll <= 0) return c.id
+    }
+    return candidates[candidates.length - 1].id
   }
 
   startNextTurn() {
@@ -408,35 +412,32 @@ export class BattleEngine {
     try {
       if (!this.enemy.skills || this.enemy.skills.length === 0) return null
       
-      const weightedSkills = []
+      const candidates = []
+
+      candidates.push({ skill: null, weight: 35 })
+
       this.enemy.skills.forEach(skillId => {
         const skill = NPC_SKILLS[skillId]
-        if (skill) {
-          let weight = 30
-          if (skill.effect === 'damage') {
-            weight = skill.damageMul >= 2.5 ? 10 : skill.damageMul >= 2 ? 15 : skill.damageMul >= 1.5 ? 25 : 35
-          } else if (skill.effect === 'stun') {
-            weight = 15
-          } else if (skill.effect === 'ignore') {
+        if (skill && skillId !== 'basic_attack') {
+          let weight = 20
+          if (skill.effect === 'stun' || skill.effect === 'ignore') {
             weight = 12
-          } else {
-            weight = 25
+          } else if (skill.effect === 'damage') {
+            weight = skill.damageMul >= 2.5 ? 15 : skill.damageMul >= 2 ? 20 : skill.damageMul >= 1.5 ? 25 : 30
           }
-          weightedSkills.push({ skill, weight })
+          candidates.push({ skill, weight })
         }
       })
 
-      if (weightedSkills.length === 0) return null
+      if (candidates.length === 0) return null
 
-      const totalWeight = weightedSkills.reduce((sum, s) => sum + s.weight, 0)
+      const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0)
       let roll = Math.random() * totalWeight
-
-      for (const { skill, weight } of weightedSkills) {
-        roll -= weight
-        if (roll <= 0) return skill
+      for (const c of candidates) {
+        roll -= c.weight
+        if (roll <= 0) return c.skill
       }
-
-      return weightedSkills[weightedSkills.length - 1].skill
+      return candidates[candidates.length - 1].skill
     } catch { return null }
   }
 
@@ -444,7 +445,6 @@ export class BattleEngine {
     if (this.isOver) return
 
     if (this.enemy.isDummy) {
-      this.addLog('stun', `${this.enemy.name} 没有反击...`)
       return
     }
 
@@ -474,13 +474,14 @@ export class BattleEngine {
     }
 
     const enemyWeapon = this.enemy.weapon
+    const enemyWeaponName = enemyWeapon ? enemyWeapon.name : '拳头'
     let damage = CALC.damage(enemyStats, enemyWeapon, null)
-    let skillName = '拳打脚踢'
+    let skillName = enemyWeaponName
 
     if (enemySkill && enemySkill.effect === 'damage') {
       const skillMul = enemySkill.damageMul || 1.0
       damage = Math.floor(damage * skillMul)
-      skillName = enemySkill.name
+      skillName = `${enemyWeaponName}·${enemySkill.name}`
     }
 
     const dodgeChance = CALC.dodgeRate(stats.agility, stats.speed) + (this.player.skills.some(s => getSkillById(s.id)?.dodgeBonus) ? 0.07 : 0)

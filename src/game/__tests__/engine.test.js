@@ -304,14 +304,15 @@ describe('BattleEngine', () => {
   })
 
   describe('chooseEnemySkill', () => {
-    it('should return a valid skill', () => {
-      const engine = new BattleEngine(makePlayer(), makeEnemy(), [], null)
-      engine.start()
-      const skill = engine.chooseEnemySkill()
-      expect(skill).toBeDefined()
+  it('should return a valid skill or null', () => {
+    const engine = new BattleEngine(makePlayer(), makeEnemy(), [], null)
+    engine.start()
+    const skill = engine.chooseEnemySkill()
+    if (skill !== null) {
       expect(skill.name).toBeDefined()
-      expect(skill.damageMul).toBeDefined()
-    })
+      expect(skill.damageMul || skill.effect).toBeDefined()
+    }
+  })
   })
 
   describe('autoSelectSkill', () => {
