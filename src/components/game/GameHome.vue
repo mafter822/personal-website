@@ -8,7 +8,8 @@
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-1">
-            <h2 class="text-xl font-bold">{{ state.player.name }}</h2>
+            <h2 v-if="!editingName" class="text-xl font-bold cursor-pointer hover:text-primary" @click="startEditName">{{ state.player.name }}</h2>
+            <input v-else v-model="newName" @keyup.enter="saveName" @blur="saveName" class="text-xl font-bold bg-transparent border-b-2 border-primary outline-none w-40" maxlength="8" autofocus />
             <span class="text-sm text-text-secondary">Lv.{{ state.player.level }}</span>
             <span class="text-xs px-2 py-0.5 rounded bg-accent/10 text-accent">{{ state.player.title }}</span>
           </div>
@@ -139,13 +140,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { gameStore } from '../../game/store.js'
 import { EXP_PER_LEVEL } from '../../game/data/constants.js'
 import { getSkillById } from '../../game/data/skills.js'
 import { WEAPON_QUALITY } from '../../game/data/constants.js'
 
 const { state, getCombatStats, getEquippedWeapon } = gameStore
+
+const editingName = ref(false)
+const newName = ref('')
+
+function startEditName() {
+  newName.value = state.player.name
+  editingName.value = true
+}
+
+function saveName() {
+  if (newName.value.trim()) {
+    state.player.name = newName.value.trim()
+  }
+  editingName.value = false
+}
 
 const combatStats = computed(() => getCombatStats())
 const maxHealth = computed(() => combatStats.value.maxHealth)
