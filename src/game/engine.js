@@ -57,6 +57,7 @@ export class BattleEngine {
     const hasteBuff = this.player.buffs.find(b => b.type === 'haste')
     if (hasteBuff) {
       spd = Math.floor(spd * (1 + hasteBuff.speedBonus))
+      str = Math.floor(str * (1 + (hasteBuff.damageBonus || 0)))
     }
 
     if (this.player.realmBonus) {
@@ -280,6 +281,7 @@ export class BattleEngine {
     const weaponName = weapon ? weapon.name : '拳头'
 
     let damage = CALC.damage(stats, weapon, skill)
+    let isCrit = false
 
     if (weapon && weapon.special && weapon.special.type === 'combo') {
       if (Math.random() < weapon.special.chance) {
@@ -289,12 +291,33 @@ export class BattleEngine {
       }
     }
 
-    const critChance = CALC.critRate(stats.agility)
-    const critResult = CALC.prdCheck(critChance, this.player.critCounter)
-    this.player.critCounter = critResult.counter
-    const isCrit = critResult.triggered
-    if (isCrit) {
-      damage = Math.floor(damage * 1.5)
+    if (weapon && weapon.special && weapon.special.type === 'crit') {
+      if (Math.random() < weapon.special.chance) {
+        damage = Math.floor(damage * (weapon.special.multiplier || 1.5))
+        isCrit = true
+        this.addLog('crit', `【${weaponName}】暴击！造成 ${damage} 伤害`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
+      }
+    }
+
+    if (weapon && weapon.special && weapon.special.type === 'stun') {
+      if (Math.random() < (weapon.special.chance || 0.1)) {
+        const turns = weapon.special.turns || 1
+        this.enemy.status.stun(turns)
+        this.addLog('control', `【${weaponName}】眩晕了 ${this.enemy.name} ${turns} 回合！`, { source: this.player.name, target: this.enemy.name, value: turns, weaponName })
+      }
+    }
+
+    if (weapon && weapon.special && weapon.special.type === 'instakill') {
+      if (Math.random() < (weapon.special.instakill || 0.1)) {
+        this.enemy.health = 1
+        damage = this.enemy.maxHealth - 1
+        this.addLog('special', `【${weaponName}】秒杀！${this.enemy.name}生命降至1点！`, { source: this.player.name, target: this.enemy.name, value: damage, weaponName })
+      }
+    }
+
+    if (weapon && weapon.special && weapon.special.type === 'rest') {
+      this.player.status.rest(weapon.special.turns || 1)
+      this.addLog('special', `【${weaponName}】使用后需要休息 ${weapon.special.turns || 1} 回合`, { source: this.player.name, weaponName })
     }
 
     const enemyDodge = this.enemy.isDummy
@@ -303,7 +326,13 @@ export class BattleEngine {
     const dodgeResult = CALC.prdCheck(enemyDodge, this.enemy.dodgeCounter)
     this.enemy.dodgeCounter = dodgeResult.counter
     if (dodgeResult.triggered) {
-      this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`, { source: this.player.name, target: this.enemy.name, weaponName })
+      if (weapon && weapon.special && weapon.special.type === 'dodgeCounter') {
+        const counterDmg = Math.floor(damage * 0.5)
+        this.enemy.health = Math.max(0, this.enemy.health - counterDmg)
+        this.addLog('counter', `【${weaponName}】闪避反击！${this.enemy.name}损失 ${counterDmg} 伤害！`, { source: this.player.name, target: this.enemy.name, value: counterDmg, weaponName })
+      } else {
+        this.addLog('dodge', `${this.player.name}用【${weaponName}】攻击，${this.enemy.name}闪开了！`, { source: this.player.name, target: this.enemy.name, weaponName })
+      }
       this.player.stats.misses++
       return
     }
@@ -390,11 +419,15 @@ export class BattleEngine {
   }
 
   executeDisarmSkill(skill) {
+    if (!this.enemy.weapon) {
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}已无武器可夺！`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
+      return
+    }
     if (Math.random() < skill.chance) {
       this.enemy.weapon = null
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！夺取了 ${this.enemy.name}的武器`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！成功夺取了 ${this.enemy.name} 的武器！`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
     } else {
-      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}已无武器可夺！`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
+      this.addLog('control', `${this.player.name}发动【${skill.name}】！但${this.enemy.name}奋力抵挡，缴械失败！`, { source: this.player.name, target: this.enemy.name, skillName: skill.name })
     }
   }
 

@@ -72,7 +72,7 @@ import Toast from '../components/game/Toast.vue'
 const { state } = gameStore
 
 const activeTab = ref('home')
-const previousTab = ref('stage')
+const previousTab = ref('home')
 const battleEnemy = ref(null)
 const battleStageId = ref(null)
 const toastMessage = ref('')
