@@ -1,9 +1,27 @@
 <template>
   <div class="space-y-4">
+    <!-- Streak Display -->
     <div class="card p-4">
-      <h3 class="text-lg font-semibold mb-2">⚔️ 随机乐斗</h3>
-      <p class="text-sm text-text-secondary mb-4">匹配一个与你实力相当的企鹅勇士</p>
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-semibold">⚔️ 随机乐斗</h3>
+          <p class="text-sm text-text-secondary">匹配一个与你实力相当的企鹅勇士</p>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-bold" :class="streakColor">{{ state.stats.streak }}</div>
+          <div class="text-xs text-text-muted">当前连胜</div>
+        </div>
+      </div>
+      <div v-if="state.stats.streak >= 3" class="mt-2 text-xs text-amber-500">
+        🔥 连胜 {{ state.stats.streak }} 场！经验+{{ streakBonusDisplay }}%，精魄+{{ spiritBonusDisplay }}
+      </div>
+      <div v-if="specialEncounter" class="mt-2 text-xs" :style="{ color: specialEncounter.color }">
+        ⭐ {{ specialEncounter.desc }}
+      </div>
+    </div>
 
+    <!-- Match Area -->
+    <div class="card p-4">
       <div v-if="!matched" class="text-center py-8">
         <div class="text-4xl mb-4 animate-bounce">🐧</div>
         <p class="text-text-secondary mb-4">正在匹配对手...</p>
@@ -25,6 +43,9 @@
             <div class="font-bold" :style="{ color: opponent.color }">{{ opponent.name }}</div>
             <div class="text-sm text-text-secondary">Lv.{{ opponent.level }}</div>
             <div class="text-xs text-text-muted mt-1">{{ opponent.title }}</div>
+            <div v-if="opponent.isSpecial" class="text-xs mt-1" :style="{ color: opponent.color }">
+              ⭐ {{ opponent.specialTitle }}
+            </div>
           </div>
         </div>
 
@@ -37,6 +58,9 @@
             <div><span class="text-text-muted">生命:</span> <span class="font-medium">{{ opponent.maxHealth }}</span></div>
             <div><span class="text-text-muted">武器:</span> <span class="font-medium">{{ opponent.weaponName }}</span></div>
             <div><span class="text-text-muted">技能:</span> <span class="font-medium">{{ opponent.skillCount }}个</span></div>
+          </div>
+          <div v-if="opponent.rewardMultiplier > 1" class="mt-2 text-xs text-amber-500">
+            🎁 奖励 x{{ opponent.rewardMultiplier }}
           </div>
         </div>
 
@@ -56,9 +80,10 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { gameStore } from '../../game/store.js'
-import { SKILLS, getSkillById } from '../../game/data/skills.js'
+import { SKILLS } from '../../game/data/skills.js'
 import { WEAPONS } from '../../game/data/weapons.js'
 import { TITLE_LIST, generateNPCName } from '../../game/data/pets.js'
+import { getSpecialEncounter, getStreakBonus } from '../../game/data/streak.js'
 
 const emit = defineEmits(['start-battle'])
 const { state } = gameStore
@@ -80,15 +105,48 @@ function getTitle(level) {
   return title
 }
 
+const specialEncounter = computed(() => getSpecialEncounter(state.stats.streak))
+
+const streakBonusDisplay = computed(() => {
+  const bonus = getStreakBonus(state.stats.streak)
+  return Math.round(bonus.expBonus * 100)
+})
+
+const spiritBonusDisplay = computed(() => {
+  const bonus = getStreakBonus(state.stats.streak)
+  return bonus.spiritBonus
+})
+
+const streakColor = computed(() => {
+  const s = state.stats.streak
+  if (s >= 10) return 'text-yellow-500'
+  if (s >= 7) return 'text-pink-500'
+  if (s >= 5) return 'text-purple-500'
+  if (s >= 3) return 'text-orange-500'
+  return 'text-text-secondary'
+})
+
 function matchOpponent() {
   const playerLevel = state.player.level
-  const levelRange = Math.max(1, Math.floor(playerLevel * 0.3))
-  const enemyLevel = Math.max(1, playerLevel + Math.floor(Math.random() * levelRange * 2) - levelRange)
+  const streak = state.stats.streak
 
-  const strBase = 15 + enemyLevel * 3
-  const agiBase = 8 + enemyLevel * 2
-  const spdBase = 10 + enemyLevel * 2
-  const hpBase = 80 + enemyLevel * 15
+  const special = getSpecialEncounter(streak)
+
+  let levelRange = Math.max(1, Math.floor(playerLevel * 0.3))
+  if (special) levelRange = Math.max(1, Math.floor(playerLevel * 0.2))
+
+  let enemyLevel = Math.max(1, playerLevel + Math.floor(Math.random() * levelRange * 2) - levelRange)
+  if (special) enemyLevel += special.levelBonus
+
+  const strMult = special ? special.statsMultiplier : 1
+  const agiMult = special ? special.statsMultiplier : 1
+  const spdMult = special ? special.statsMultiplier : 1
+  const hpMult = special ? special.statsMultiplier : 1
+
+  const strBase = Math.floor((15 + enemyLevel * 3) * strMult)
+  const agiBase = Math.floor((8 + enemyLevel * 2) * agiMult)
+  const spdBase = Math.floor((10 + enemyLevel * 2) * spdMult)
+  const hpBase = Math.floor((80 + enemyLevel * 15) * hpMult)
 
   const ownedSkillIds = []
   const ownedWeaponIds = []
@@ -114,12 +172,19 @@ function matchOpponent() {
 
   const skills = ownedSkillIds.map(id => ({ id, level: 1 + Math.floor(Math.random() * 3) }))
 
-  const name = generateNPCName()
+  const name = special ? special.name : generateNPCName()
+  const title = special ? special.title : getTitle(enemyLevel)
+  const color = special ? special.color : randomFrom(TITLE_COLORS)
+  const rewardMult = special ? special.rewardMultiplier : 1
+
+  const baseExp = 50 + enemyLevel * 10
+  const baseSpirit = 1 + Math.floor(enemyLevel / 10)
+  const streakBonus = getStreakBonus(streak)
 
   opponent.value = {
     name,
     level: enemyLevel,
-    title: getTitle(enemyLevel),
+    title,
     strength: strBase + Math.floor(Math.random() * 10),
     agility: agiBase + Math.floor(Math.random() * 8),
     speed: spdBase + Math.floor(Math.random() * 8),
@@ -129,8 +194,14 @@ function matchOpponent() {
     weaponName: enemyWeapon ? enemyWeapon.name : '拳头',
     skills,
     skillCount: skills.length,
-    rewards: { exp: 50 + enemyLevel * 10, spirit: 1 + Math.floor(enemyLevel / 10) },
-    color: randomFrom(TITLE_COLORS),
+    rewards: {
+      exp: Math.floor((baseExp + streakBonus.expBonus * baseExp) * rewardMult),
+      spirit: Math.floor((baseSpirit + streakBonus.spiritBonus) * rewardMult),
+    },
+    color,
+    isSpecial: !!special,
+    specialTitle: special ? special.title : '',
+    rewardMultiplier: rewardMult,
   }
 
   matched.value = true
