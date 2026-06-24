@@ -78,6 +78,49 @@ export const WEAPONS = [
   // Lv35+ 开放
   { id: 'w_true_trident', name: '真·三叉戟', type: 'large', quality: 'legendary', baseDamage: [35, 65], reqLevel: 35, special: { type: 'noRest' }, desc: '完全掌控海神之力，无需休息的终极版本',
     weights: [0, 0, 0, 0, 0, 0, 0, 2.6] },
+
+  // === 新增趣味武器 ===
+  // Lv1-4 新手趣味
+  { id: 'w_chopsticks', name: '筷子', type: 'small', quality: 'common', baseDamage: [3, 12], reqLevel: 1, special: { type: 'combo', chance: 0.15 }, desc: '一双筷子打天下',
+    weights: [20.0, 12.0, 5.0, 2.5, 1.5, 1.0, 0.8, 0.7] },
+  { id: 'w_ruler', name: '尺子', type: 'small', quality: 'common', baseDamage: [5, 10], reqLevel: 1, special: { type: 'crit', chance: 0.2, multiplier: 2.0 }, desc: '打手心专用，暴击伤害翻倍',
+    weights: [18.0, 11.0, 4.5, 2.2, 1.4, 0.9, 0.7, 0.6] },
+  { id: 'w_book', name: '书本', type: 'small', quality: 'common', baseDamage: [4, 14], reqLevel: 1, special: { type: 'stun', chance: 0.05 }, desc: '知识就是力量，砸晕你',
+    weights: [16.0, 10.0, 4.0, 2.0, 1.3, 0.8, 0.7, 0.6] },
+  { id: 'w_pillow', name: '枕头', type: 'medium', quality: 'common', baseDamage: [8, 16], reqLevel: 1, special: { type: 'combo', chance: 0.2 }, desc: '打人不疼但很烦，鹅毛满天飞',
+    weights: [22.0, 14.0, 6.0, 3.0, 1.8, 1.2, 1.0, 0.9] },
+  { id: 'w_bear', name: '泰迪熊', type: 'small', quality: 'common', baseDamage: [6, 14], reqLevel: 1, special: { type: 'combo', chance: 0.08 }, desc: '治愈拥抱，打完还能哄你睡觉',
+    weights: [15.0, 9.0, 3.5, 1.8, 1.1, 0.7, 0.6, 0.5] },
+
+  // Lv5-9 进阶趣味
+  { id: 'w_umbrella', name: '雨伞', type: 'medium', quality: 'uncommon', baseDamage: [12, 22], reqLevel: 5, special: { type: 'dodgeCounter', chance: 0.1 }, desc: '晴天雨伞两用，格挡后反击',
+    weights: [0, 8.0, 9.5, 5.0, 3.2, 2.5, 2.2, 2.1] },
+  { id: 'w_toilet_roll', name: '卷纸', type: 'hidden', quality: 'uncommon', baseDamage: [8, 18], reqLevel: 5, special: { type: 'sureHit', throwable: true }, desc: '终极暗器，沾了水更厉害',
+    weights: [0, 6.0, 7.0, 3.8, 2.4, 1.8, 1.6, 1.5] },
+  { id: 'w_rubber_duck', name: '小黄鸭', type: 'small', quality: 'uncommon', baseDamage: [6, 14], reqLevel: 5, special: { type: 'stun', chance: 0.08 }, desc: '捏一下叫一声，对手分心',
+    weights: [0, 7.0, 8.0, 4.2, 2.7, 2.0, 1.8, 1.7] },
+  { id: 'w_keyboard', name: '键盘', type: 'medium', quality: 'uncommon', baseDamage: [15, 25], reqLevel: 5, special: { type: 'combo', chance: 0.15 }, desc: '机械键盘敲人特别响，青轴最佳',
+    weights: [0, 8.5, 10.0, 5.3, 3.4, 2.6, 2.3, 2.2] },
+
+  // Lv10-14 中级趣味
+  { id: 'w_fan', name: '扇子', type: 'small', quality: 'rare', baseDamage: [10, 28], reqLevel: 10, special: { type: 'dodgeCounter', chance: 0.15 }, desc: '一扇遮百丑，文雅中带着杀气',
+    weights: [0, 0, 4.0, 5.5, 3.5, 2.7, 2.4, 2.3] },
+  { id: 'w_slipper', name: '拖鞋', type: 'hidden', quality: 'rare', baseDamage: [18, 32], reqLevel: 10, special: { type: 'sureHit', instakill: 0.05 }, desc: '妈妈的拖鞋，百发百中',
+    weights: [0, 0, 3.5, 5.0, 3.2, 2.5, 2.2, 2.1] },
+  { id: 'w_mop', name: '拖把', type: 'large', quality: 'uncommon', baseDamage: [16, 30], reqLevel: 10, special: { type: 'combo', chance: 0.12 }, desc: '湿拖把甩人一脸，又脏又疼',
+    weights: [0, 0, 4.5, 6.5, 4.2, 3.2, 2.9, 2.8] },
+
+  // Lv15-19 高级趣味
+  { id: 'w_laptop', name: '笔记本电脑', type: 'medium', quality: 'rare', baseDamage: [22, 40], reqLevel: 15, special: { type: 'combo', chance: 0.15 }, desc: '砸键盘比砸人疼，但解气',
+    weights: [0, 0, 0, 4.0, 6.5, 5.0, 4.5, 4.3] },
+  { id: 'w_guitar', name: '吉他', type: 'large', quality: 'rare', baseDamage: [18, 35], reqLevel: 15, special: { type: 'stun', chance: 0.1 }, desc: '摇滚精神，一击制敌',
+    weights: [0, 0, 0, 3.5, 5.8, 4.5, 4.0, 3.8] },
+
+  // Lv20+ 终极趣味
+  { id: 'w_microwave', name: '微波炉', type: 'large', quality: 'epic', baseDamage: [30, 55], reqLevel: 20, special: { type: 'crit', chance: 0.25, multiplier: 1.5 }, desc: '加热后扔出去更疼，还附带灼烧',
+    weights: [0, 0, 0, 0, 2.8, 5.5, 5.0, 4.8] },
+  { id: 'w_airhorn', name: '喇叭', type: 'hidden', quality: 'epic', baseDamage: [25, 45], reqLevel: 20, special: { type: 'stun', chance: 0.15 }, desc: '一声响彻云霄，对手捂耳朵',
+    weights: [0, 0, 0, 0, 2.5, 4.8, 4.3, 4.2] },
 ]
 
 export const WEAPON_TOTAL_WEIGHTS = [315, 253, 282, 266, 207, 135, 75, 39]

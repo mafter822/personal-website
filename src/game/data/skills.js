@@ -77,6 +77,35 @@ export const SKILLS = [
     weights: [0, 0, 0, 2.0, 2.5, 2.5, 1.9, 1.4] },
   { id: 'spc_blackdragon', name: '黑龙波', category: 'special', icon: '🐉', maxLevel: 1, tier: 'T3', fixedDamage: 50, desc: '固定50点伤害，每场仅1次', spiritCost: 2, unlockLevel: 30,
     weights: [0, 0, 0, 0, 0, 0, 0.6, 0.7] },
+
+  // === 新增趣味技能 ===
+  // T2 输出/控制
+  { id: 'atk_slap', name: '耳光', category: 'attack', icon: '👋', maxLevel: 5, tier: 'T2', damageMul: 1.8, desc: '打人先打脸，伤害1.8倍', spiritCost: 2, unlockLevel: 8,
+    weights: [0, 0, 4.5, 5.0, 4.2, 3.5, 2.8, 2.2] },
+  { id: 'atk_tickle2', name: '挠痒痒加强版', category: 'attack', icon: '🤭', maxLevel: 5, tier: 'T2', damageMul: 1.2, desc: '笑到断气，1.2倍伤害+25%眩晕', spiritCost: 2, unlockLevel: 8,
+    weights: [0, 0, 4.0, 4.5, 3.8, 3.0, 2.5, 2.0] },
+  { id: 'ctrl_sing', name: '魔音灌耳', category: 'control', icon: '🎤', maxLevel: 1, tier: 'T2', effect: 'ignore', turns: 2, desc: '唱歌太难听，对手捂耳朵2回合', spiritCost: 2, unlockLevel: 12,
+    weights: [0, 0, 0, 3.0, 3.5, 3.0, 2.5, 2.0] },
+  { id: 'ctrl_sleep', name: '催眠曲', category: 'control', icon: '😴', maxLevel: 1, tier: 'T2', effect: 'stun', turns: 2, desc: '听了就想睡，眩晕2回合', spiritCost: 2, unlockLevel: 12,
+    weights: [0, 0, 0, 3.2, 3.8, 3.2, 2.7, 2.2] },
+
+  // T3 辅助/特殊
+  { id: 'spc_flash', name: '闪光灯', category: 'special', icon: '📸', maxLevel: 1, tier: 'T3', effect: 'ignore', turns: 1, fixedDamage: 50, desc: '手机闪光灯闪瞎对手1回合+50伤害', spiritCost: 2, unlockLevel: 10,
+    weights: [0, 0, 2.5, 3.0, 2.5, 2.0, 1.5, 1.2] },
+  { id: 'spc_brick_throw', name: '板砖投掷', category: 'special', icon: '🧱', maxLevel: 1, tier: 'T3', damageMul: 2.5, desc: '扔出一块砖，高伤害2.5倍', spiritCost: 2, unlockLevel: 10,
+    weights: [0, 0, 3.0, 3.5, 3.0, 2.5, 2.0, 1.5] },
+  { id: 'heal_coffee', name: '咖啡', category: 'special', icon: '☕', maxLevel: 5, tier: 'T3', effect: 'heal', healPercent: 0.2, fixedDamage: 15, desc: '喝咖啡提神，回复20%血+加速', spiritCost: 2, unlockLevel: 8,
+    weights: [0, 0, 3.5, 4.0, 3.2, 2.5, 2.0, 1.5] },
+  { id: 'buff_confidence', name: '自信满满', category: 'buff', icon: '💪', maxLevel: 3, tier: 'T3', desc: '伤害+15%持续3回合', spiritCost: 2, unlockLevel: 10,
+    weights: [0, 0, 2.8, 3.2, 2.8, 2.2, 1.8, 1.4] },
+  { id: 'def_fan_shield', name: '扇子护盾', category: 'defense', icon: '🪭', maxLevel: 3, tier: 'T3', blockChance: 0.25, desc: '格挡率+25%持续2回合', spiritCost: 2, unlockLevel: 10,
+    weights: [0, 0, 2.5, 2.8, 2.5, 2.0, 1.6, 1.2] },
+  { id: 'atk_pingpong', name: '乒乓球攻击', category: 'attack', icon: '🏓', maxLevel: 5, tier: 'T3', damageMul: 1.0, desc: '快速连击，1.0倍伤害+30%连击', spiritCost: 2, unlockLevel: 8,
+    weights: [0, 0, 3.0, 3.5, 3.0, 2.5, 2.0, 1.5] },
+  { id: 'spc_wifi', name: 'WiFi断连', category: 'special', icon: '📶', maxLevel: 1, tier: 'T3', fixedDamage: 50, desc: '断网是最强的控制，50点伤害', spiritCost: 2, unlockLevel: 15,
+    weights: [0, 0, 0, 2.0, 2.5, 2.0, 1.5, 1.2] },
+  { id: 'heal_bubble_tea', name: '珍珠奶茶', category: 'special', icon: '🧋', maxLevel: 5, tier: 'T3', effect: 'heal', healPercent: 0.3, desc: '奶茶治愈一切，回复30%生命', spiritCost: 2, unlockLevel: 10,
+    weights: [0, 0, 2.5, 3.0, 2.5, 2.0, 1.5, 1.2] },
 ]
 
 export const TOTAL_WEIGHTS = [100, 214, 324, 391, 401, 366, 335, 295]
